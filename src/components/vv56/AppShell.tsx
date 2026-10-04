@@ -43,7 +43,7 @@ export function AppShell({
             <img src="/logo-vv56.png" alt="" className="h-10 w-10 rounded-full bg-white p-0.5" />
             <span>
               <span className="block font-display text-base font-bold">
-                {(loggedIn && q.data?.team.nomAffiche) || "Vannes Volley 56"}
+                {(s.code && q.data?.team.nomAffiche) || "Vannes Volley 56"}
               </span>
               {coach && <span className="block text-xs text-primary-foreground/75">Espace coach</span>}
             </span>

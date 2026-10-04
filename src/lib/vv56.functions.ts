@@ -175,14 +175,19 @@ export const verifyCoachCode = createServerFn({ method: "POST" })
 
 export const markDone = createServerFn({ method: "POST" })
   .inputValidator((d) =>
-    z.object({ code: codeSchema, coachCode: codeSchema, contributionId: recId }).parse(d),
+    z.object({ code: codeSchema, coachCode: codeSchema, contributionId: recId, done: z.boolean() }).parse(d),
   )
   .handler(async ({ data }) => {
     const { getRecord, updateRecord, T } = await import("./airtable.server");
     const team = await requireCoach(data.code, data.coachCode);
     const c = await getRecord(T.contributions, data.contributionId);
     await assertMissionInTeam(team.id, c.fields["Mission"][0]);
-    await updateRecord(T.contributions, data.contributionId, { Statut: "Réalisé" });
+    // Non réalisé : la contribution est annulée (elle ne compte plus) avec une trace pour le suivi.
+    await updateRecord(
+      T.contributions,
+      data.contributionId,
+      data.done ? { Statut: "Réalisé" } : { Statut: "Annulé", Commentaire: "Non réalisé (signalé par le coach)" },
+    );
     return { ok: true };
   });
 

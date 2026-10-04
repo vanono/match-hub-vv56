@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Share2, CheckCircle2, CalendarPlus, PartyPopper, ClipboardCheck, Settings } from "lucide-react";
+import { Share2, CheckCircle2, CalendarPlus, PartyPopper, ClipboardCheck, Settings, XCircle } from "lucide-react";
 import { MissionIcon } from "@/components/vv56/MissionIcon";
 import { MatchSheet } from "@/components/vv56/MatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
@@ -142,11 +142,12 @@ function ToValidate({ d }: { d: TeamData }) {
       return { c, m, match: d.matchs.find((x) => x.id === m?.matchId) };
     })
     .sort((a, b) => (a.match?.date ?? "").localeCompare(b.match?.date ?? ""));
-  const go = async (id: string) => {
-    setBusy(id);
+  const go = async (id: string, done: boolean) => {
+    if (!done && !confirm("Marquer cette mission comme non réalisée ? L'inscription sera retirée.")) return;
+    setBusy(id + done);
     try {
-      await mark({ data: { code: s.code!, coachCode: s.coachCode!, contributionId: id } });
-      toast.success("Marqué comme réalisé, merci à eux !");
+      await mark({ data: { code: s.code!, coachCode: s.coachCode!, contributionId: id, done } });
+      toast.success(done ? "Marqué comme réalisé, merci à eux !" : "Marqué comme non réalisé.");
       await refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -157,13 +158,13 @@ function ToValidate({ d }: { d: TeamData }) {
   };
   return (
     <section>
-      <h2 className="text-lg font-bold">Valider les missions réalisées</h2>
+      <h2 className="text-lg font-bold">Valider les missions</h2>
       <div className="mt-3 space-y-2">
         {items.length === 0 ? (
           <Empty icon={ClipboardCheck} title="Rien à valider" />
         ) : (
           items.map(({ c, m, match }) => (
-            <div key={c.id} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
+            <div key={c.id} className="rounded-xl border border-border bg-card p-3">
               <div className="min-w-0 text-sm">
                 <p className="truncate font-medium">{shortName(d.personnes.find((p) => p.id === c.personneId)?.nom ?? "")}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -171,9 +172,14 @@ function ToValidate({ d }: { d: TeamData }) {
                   {c.realisePar && ` · ${c.realisePar}`}
                 </p>
               </div>
-              <Btn variant="outline" className="min-h-10 shrink-0 px-3 text-sm" loading={busy === c.id} onClick={() => go(c.id)}>
-                <CheckCircle2 className="h-4 w-4" /> Réalisé
-              </Btn>
+              <div className="mt-2 flex justify-end gap-2">
+                <Btn variant="ghost" className="min-h-10 px-3 text-sm" loading={busy === c.id + false} onClick={() => go(c.id, false)}>
+                  <XCircle className="h-4 w-4" /> Non réalisé
+                </Btn>
+                <Btn variant="outline" className="min-h-10 px-3 text-sm" loading={busy === c.id + true} onClick={() => go(c.id, true)}>
+                  <CheckCircle2 className="h-4 w-4" /> Réalisé
+                </Btn>
+              </div>
             </div>
           ))
         )}
