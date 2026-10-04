@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Share2, CheckCircle2, LogOut } from "lucide-react";
+import { Share2, CheckCircle2, LogOut, CalendarPlus } from "lucide-react";
+import { NewMatchSheet } from "@/components/vv56/NewMatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
 import { Btn, Card, Empty, Pill } from "@/components/vv56/ui";
 import { useRefreshTeam, useSession, useTeamData } from "@/lib/session";
@@ -72,6 +73,7 @@ function CoachGate() {
 function CoachDashboard() {
   const { data: d } = useTeamData();
   const s = useSession();
+  const [creating, setCreating] = useState(false);
   if (!d) return null;
   const cov = teamCoverage(d);
   const familles = d.personnes.filter((p) => p.actif && p.profil !== "Coach");
@@ -92,6 +94,11 @@ function CoachDashboard() {
           <LogOut className="h-4 w-4" /> Quitter
         </button>
       </div>
+
+      <Btn variant="accent" className="w-full" onClick={() => setCreating(true)}>
+        <CalendarPlus className="h-5 w-5" /> Créer un match
+      </Btn>
+      {creating && <NewMatchSheet onClose={() => setCreating(false)} />}
 
       <div className="grid grid-cols-2 gap-3">
         <Card>

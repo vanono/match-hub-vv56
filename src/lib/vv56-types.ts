@@ -103,3 +103,19 @@ export function teamCoverage(d: TeamData) {
   return { total, covered, pct: total ? Math.round((covered / total) * 100) : 0 };
 }
 
+
+export type MissionDraft = { type: "Transport" | "Maillots" | "Collation" | "Buvette" | "Installation"; libelle: string; places: number; detail?: string };
+
+// Missions proposées par défaut à la création d'un match (modifiables avant validation).
+export function defaultMissions(lieu: "Domicile" | "Extérieur", adversaire: string): MissionDraft[] {
+  if (lieu === "Extérieur")
+    return [
+      { type: "Transport", libelle: `Transport ${adversaire}`.trim(), places: 3, detail: "3 voitures de 4 places." },
+      { type: "Maillots", libelle: "Lavage maillots", places: 1 },
+    ];
+  return [
+    { type: "Collation", libelle: "Collation", places: 2, detail: "Goûter pour les deux équipes." },
+    { type: "Maillots", libelle: "Lavage maillots", places: 1 },
+    { type: "Installation", libelle: "Installation salle", places: 2 },
+  ];
+}
