@@ -59,7 +59,7 @@ function CoachDashboard() {
           <p className="text-xs text-muted-foreground">{cov.covered} / {cov.total} missions</p>
         </Card>
         <Card>
-          <p className="text-xs font-semibold text-muted-foreground">Familles ayant contribué</p>
+          <p className="text-xs font-semibold text-muted-foreground">Joueuses ayant contribué</p>
           <p className="font-display text-3xl font-bold">{contributed} / {familles.length}</p>
           <p className="text-xs text-muted-foreground">sur la saison</p>
         </Card>
@@ -117,7 +117,7 @@ function CoachDashboard() {
         </Card>
         {zero.length > 0 && (
           <div className="mt-3 rounded-xl bg-warning-soft p-3 text-sm text-warning-foreground">
-            <b>{zero.length} famille{zero.length > 1 ? "s n'ont" : " n'a"} pas encore eu l'occasion de participer.</b> Une petite
+            <b>{zero.length} joueuse{zero.length > 1 ? "s n'ont" : " n'a"} pas encore eu l'occasion de participer.</b> Une petite
             invitation personnelle (une collation, un lavage de maillots) est souvent la meilleure porte d'entrée.
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Link, Navigate } from "@tanstack/react-router";
+import { Link, Navigate, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, Star, LayoutDashboard, ChevronRight, LogOut, ArrowLeft } from "lucide-react";
 import { useSession, useTeamData, type Role } from "@/lib/session";
@@ -169,87 +169,60 @@ function TeamCodeForm() {
   );
 }
 
-// Étape 2 de l'accueil : choix explicite du profil.
+// Étape 2 de l'accueil : choix direct de la joueuse (espace équipe) ;
+// le coach passe par le lien discret « Accès coach ». Les deux espaces restent exclusifs.
 function RoleChooser() {
   const s = useSession();
-  const [step, setStep] = useState<"choix" | "famille" | "coach">("choix");
-  if (step === "famille") return <PersonPicker onBack={() => setStep("choix")} />;
-  if (step === "coach") return <CoachCodeForm onBack={() => setStep("choix")} />;
+  const q = useTeamData();
+  const navigate = useNavigate();
+  const [coach, setCoach] = useState(false);
+  if (coach) return <CoachCodeForm onBack={() => setCoach(false)} />;
+  const label = (p: { nom: string; joueur: string }) => p.joueur || shortName(p.nom);
+  const list = (q.data?.personnes ?? [])
+    .filter((p) => p.actif && p.profil !== "Coach")
+    .sort((a, b) => label(a).localeCompare(label(b), "fr"));
   return (
     <div className="pt-4">
-      <h1 className="text-2xl font-bold">Qui êtes-vous ?</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Ce choix reste mémorisé sur cet appareil jusqu'à la déconnexion.
-      </p>
-      <div className="mt-5 space-y-3">
-        <RoleButton title="Je suis joueur, joueuse ou parent" onClick={() => setStep("famille")} />
-        <RoleButton title="Je suis coach" onClick={() => setStep("coach")} />
+      <h1 className="text-2xl font-bold">Pour quelle joueuse ?</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Joueuses et parents : choisissez le prénom de la joueuse.</p>
+      <div className="mt-5 space-y-2">
+        {list.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => {
+              s.loginFamille(p.id);
+              navigate({ to: "/matchs" });
+            }}
+            className="flex min-h-14 w-full items-center justify-between rounded-xl border border-border bg-card px-4 text-left font-medium shadow-card transition active:scale-[0.99]"
+          >
+            {label(p)}
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </button>
+        ))}
       </div>
-      <button
-        onClick={s.logout}
-        className="mt-6 inline-flex items-center gap-1 text-sm text-muted-foreground underline"
-      >
-        <LogOut className="h-4 w-4" /> Changer de code d'équipe
-      </button>
+      <div className="mt-8 flex items-center justify-between text-sm text-muted-foreground">
+        <button onClick={s.logout} className="inline-flex items-center gap-1 underline">
+          <LogOut className="h-4 w-4" /> Changer de code d'équipe
+        </button>
+        <button onClick={() => setCoach(true)} className="font-semibold text-primary underline">
+          Accès coach
+        </button>
+      </div>
     </div>
-  );
-}
-
-function RoleButton({ title, onClick }: { title: string; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex min-h-16 w-full items-center gap-4 rounded-2xl border border-border bg-card px-5 text-left shadow-card transition active:scale-[0.99]"
-    >
-      <span className="min-w-0 flex-1 font-display text-lg font-bold">{title}</span>
-      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-    </button>
   );
 }
 
 function BackLink({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-muted-foreground"
-    >
+    <button onClick={onClick} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-muted-foreground">
       <ArrowLeft className="h-4 w-4" /> Retour
     </button>
   );
 }
 
-function PersonPicker({ onBack }: { onBack: () => void }) {
-  const s = useSession();
-  const q = useTeamData();
-  const list = (q.data?.personnes ?? [])
-    .filter((p) => p.actif && p.profil !== "Coach")
-    .sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
-  return (
-    <div>
-      <BackLink onClick={onBack} />
-      <h1 className="mt-2 text-2xl font-bold">Je suis…</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Choisissez votre nom.</p>
-      <div className="mt-4 space-y-2">
-        {list.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => s.loginFamille(p.id)}
-            className="flex min-h-14 w-full items-center justify-between rounded-xl border border-border bg-card px-4 text-left shadow-card transition active:scale-[0.99]"
-          >
-            <span>
-              <span className="block font-semibold">{p.nom}</span>
-              <span className="block text-xs text-muted-foreground">{p.profil}</span>
-            </span>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function CoachCodeForm({ onBack }: { onBack: () => void }) {
   const s = useSession();
+  const navigate = useNavigate();
   const verify = useServerFn(verifyCoachCode);
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
@@ -261,7 +234,10 @@ function CoachCodeForm({ onBack }: { onBack: () => void }) {
     setErr("");
     try {
       const r = await verify({ data: { code: s.code!, coachCode: code } });
-      if (r.ok) s.loginCoach(code.trim());
+      if (r.ok) {
+        s.loginCoach(code.trim());
+        navigate({ to: "/coach" });
+      }
       else setErr("Code coach incorrect.");
     } catch {
       setErr("Vérification impossible pour le moment. Réessayez.");
