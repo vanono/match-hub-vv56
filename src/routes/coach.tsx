@@ -2,12 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Share2, CheckCircle2, LogOut, CalendarPlus } from "lucide-react";
+import { Share2, CheckCircle2, CalendarPlus } from "lucide-react";
 import { MatchSheet } from "@/components/vv56/MatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
 import { Btn, Card, Empty, Pill } from "@/components/vv56/ui";
 import { useRefreshTeam, useSession, useTeamData } from "@/lib/session";
-import { markDone, verifyCoachCode } from "@/lib/vv56.functions";
+import { markDone } from "@/lib/vv56.functions";
 import { besoinsMatch, couverture, fmtShort, isPast, sortMatchs, teamCoverage, typeEmoji, whatsappLink, type TeamData } from "@/lib/vv56-types";
 
 export const Route = createFileRoute("/coach")({
@@ -20,55 +20,11 @@ export const Route = createFileRoute("/coach")({
     ],
   }),
   component: () => (
-    <AppShell needPerson={false}>
-      <CoachGate />
+    <AppShell area="coach">
+      <CoachDashboard />
     </AppShell>
   ),
 });
-
-function CoachGate() {
-  const s = useSession();
-  const verify = useServerFn(verifyCoachCode);
-  const [code, setCode] = useState("");
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
-  if (s.coachCode) return <CoachDashboard />;
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-    setBusy(true);
-    setErr("");
-    try {
-      const r = await verify({ data: { code: s.code!, coachCode: code } });
-      if (r.ok) s.setCoachCode(code.trim());
-      else setErr("Code coach incorrect.");
-    } catch {
-      setErr("Vérification impossible pour le moment. Réessayez.");
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <div className="pt-4">
-      <h1 className="text-2xl font-bold">Espace coach</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Réservé au coach de l'équipe.</p>
-      <Card className="mt-4">
-        <form onSubmit={submit} className="space-y-3">
-          <input
-            type="password"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Code coach"
-            className="h-14 w-full rounded-xl border-2 border-input bg-background px-4 text-lg outline-none focus:border-ring"
-          />
-          {err && <p className="text-sm font-medium text-destructive">{err}</p>}
-          <Btn type="submit" loading={busy} className="w-full">Accéder</Btn>
-        </form>
-      </Card>
-      <Link to="/matchs" className="mt-4 block text-center text-sm text-muted-foreground underline">Retour aux matchs</Link>
-    </div>
-  );
-}
 
 function CoachDashboard() {
   const { data: d } = useTeamData();
@@ -88,12 +44,7 @@ function CoachDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Espace coach</h1>
-        <button onClick={() => s.setCoachCode(null)} className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-          <LogOut className="h-4 w-4" /> Quitter
-        </button>
-      </div>
+      <h1 className="text-2xl font-bold">Tableau de bord</h1>
 
       <Btn variant="accent" className="w-full" onClick={() => setCreating(true)}>
         <CalendarPlus className="h-5 w-5" /> Créer un match
@@ -193,7 +144,7 @@ function ToValidate({ d }: { d: TeamData }) {
       await refresh();
     } catch (e) {
       toast.error((e as Error).message);
-      if ((e as Error).message.includes("coach")) s.setCoachCode(null);
+      if ((e as Error).message.includes("coach")) s.logout();
     } finally {
       setBusy(null);
     }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/vv56/AppShell";
@@ -50,11 +50,6 @@ function MatchsPage() {
           {showPast && <div className="space-y-3">{past.map((m) => <MatchCard key={m.id} d={data} match={m} muted />)}</div>}
         </div>
       )}
-      <div className="mt-8 text-center">
-        <Link to="/coach" className="text-sm text-muted-foreground underline">
-          Espace coach
-        </Link>
-      </div>
     </div>
   );
 }

@@ -112,7 +112,7 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
       }
     } catch (e) {
       toast.error((e as Error).message || "Enregistrement impossible pour le moment.");
-      if ((e as Error).message?.includes("coach")) s.setCoachCode(null);
+      if ((e as Error).message?.includes("coach")) s.logout();
     } finally {
       setBusy(false);
     }

@@ -56,8 +56,8 @@ function MatchPage() {
         <Link to="/matchs" className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-muted-foreground">
           <ArrowLeft className="h-4 w-4" /> Matchs
         </Link>
-        {s.coachCode && (
-          <button onClick={() => setEditing(true)} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-accent-foreground">
+        {s.role === "coach" && (
+          <button onClick={() => setEditing(true)} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-primary">
             <Pencil className="h-4 w-4" /> Modifier le match
           </button>
         )}
@@ -102,7 +102,7 @@ function MatchPage() {
 function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex gap-3">
-      <span className="mt-0.5 text-accent-foreground/60">{icon}</span>
+      <span className="mt-0.5 text-primary/60">{icon}</span>
       <div>
         <p className="text-xs font-semibold text-muted-foreground">{label}</p>
         <p className="font-medium whitespace-pre-line">{value}</p>
@@ -164,7 +164,8 @@ function MissionCard({ d, m, onSign }: { d: TeamData; m: Mission; onSign: () => 
           ))}
         </ul>
       )}
-      <div className="mt-4">
+      {s.role !== "coach" && (
+        <div className="mt-4">
         {mine ? (
           <div className="flex items-center justify-between gap-2 rounded-xl bg-success-soft p-3">
             <span className="text-sm font-semibold text-success-foreground">Vous êtes inscrit·e, merci ! 🙌</span>
@@ -181,7 +182,8 @@ function MissionCard({ d, m, onSign }: { d: TeamData; m: Mission; onSign: () => 
             Je m'en occupe
           </Btn>
         )}
-      </div>
+        </div>
+      )}
     </Card>
   );
 }

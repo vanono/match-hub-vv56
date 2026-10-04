@@ -1,4 +1,5 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useSession } from "@/lib/session";
 import { AppShell } from "@/components/vv56/AppShell";
 
 export const Route = createFileRoute("/")({
@@ -12,7 +13,12 @@ export const Route = createFileRoute("/")({
   }),
   component: () => (
     <AppShell>
-      <Navigate to="/matchs" replace />
+      <Home />
     </AppShell>
   ),
 });
+
+function Home() {
+  const { role } = useSession();
+  return <Navigate to={role === "coach" ? "/coach" : "/matchs"} replace />;
+}
