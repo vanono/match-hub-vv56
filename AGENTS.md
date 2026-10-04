@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Airtable is the source of truth; all reads/writes go through server functions in src/lib/vv56.functions.ts using src/lib/airtable.server.ts (gateway) — no token ever reaches the browser.
+- No accounts: team code / chosen person / coach code live in localStorage and the team code (plus coach code) is re-verified server-side on every call.
+- Mission coverage is computed client-side from non-cancelled contributions (src/lib/vv56-types.ts), not from Airtable rollups, so it updates instantly after sign-up.

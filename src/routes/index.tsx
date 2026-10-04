@@ -1,24 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { AppShell } from "@/components/vv56/AppShell";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "VV56 – Espace équipe · Vannes Volley 56" },
+      { name: "description", content: "Inscrivez-vous en quelques secondes aux missions des matchs du Vannes Volley 56." },
+      { property: "og:title", content: "VV56 – Espace équipe" },
+      { property: "og:description", content: "Transport, maillots, collation : un coup de main en 10 secondes pour l'équipe." },
+    ],
+  }),
+  component: () => (
+    <AppShell>
+      <Navigate to="/matchs" replace />
+    </AppShell>
+  ),
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
