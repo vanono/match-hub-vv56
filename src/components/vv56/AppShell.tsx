@@ -53,9 +53,12 @@ export function AppShell({
       </header>
       <main className={cn("mx-auto max-w-2xl px-4 pt-4", loggedIn ? "pb-28" : "pb-10")}>
         {body}
-        <p className="mt-10 text-center text-xs text-muted-foreground">
-          Données utilisées uniquement pour l'organisation de l'équipe – Vannes Volley 56
-        </p>
+        {/* Mention RGPD (données de joueuses mineures) : une seule fois, sur l'écran d'accueil. */}
+        {s.ready && !s.code && (
+          <p className="mt-10 text-center text-xs text-muted-foreground">
+            Données utilisées uniquement pour l'organisation de l'équipe – Vannes Volley 56
+          </p>
+        )}
       </main>
       {loggedIn && <TabBar role={s.role!} />}
     </div>
@@ -204,8 +207,8 @@ function RoleChooser() {
         ))}
       </div>
       <div className="mt-8 text-center">
-        <button onClick={() => setCoach(true)} className="text-sm font-semibold text-primary underline">
-          Accès coach
+        <button onClick={() => setCoach(true)} className="min-h-12 px-4 text-lg text-primary underline underline-offset-4">
+          Accès COACH
         </button>
       </div>
     </div>
