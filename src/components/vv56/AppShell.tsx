@@ -39,9 +39,7 @@ export function AppShell({
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="shrink-0 whitespace-nowrap leading-tight">
             <span className="block font-display text-base font-bold">Vannes Volley 56</span>
-            <span className="block text-xs text-primary-foreground/75">
-              {coach ? "Espace coach" : "Espace famille"}
-            </span>
+            {coach && <span className="block text-xs text-primary-foreground/75">Espace coach</span>}
           </Link>
           {loggedIn && <WhoAmI />}
         </div>
@@ -69,7 +67,6 @@ function WhoAmI() {
   return (
     <div className="flex min-w-0 items-center gap-2">
       <span className="truncate rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-bold">
-        {s.role === "coach" ? "🧑‍🏫 " : ""}
         {label}
       </span>
       <button
@@ -180,18 +177,8 @@ function RoleChooser() {
         Ce choix reste mémorisé sur cet appareil jusqu'à la déconnexion.
       </p>
       <div className="mt-5 space-y-3">
-        <RoleButton
-          emoji="👨‍👩‍👧"
-          title="Je suis parent / joueur"
-          text="Voir les matchs et donner un coup de main"
-          onClick={() => setStep("famille")}
-        />
-        <RoleButton
-          emoji="🧑‍🏫"
-          title="Je suis coach"
-          text="Organiser les matchs et suivre les missions"
-          onClick={() => setStep("coach")}
-        />
+        <RoleButton title="Je suis joueur, joueuse ou parent" onClick={() => setStep("famille")} />
+        <RoleButton title="Je suis coach" onClick={() => setStep("coach")} />
       </div>
       <button
         onClick={s.logout}
@@ -203,27 +190,13 @@ function RoleChooser() {
   );
 }
 
-function RoleButton({
-  emoji,
-  title,
-  text,
-  onClick,
-}: {
-  emoji: string;
-  title: string;
-  text: string;
-  onClick: () => void;
-}) {
+function RoleButton({ title, onClick }: { title: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex min-h-20 w-full items-center gap-4 rounded-2xl border border-border bg-card px-4 text-left shadow-card transition active:scale-[0.99]"
+      className="flex min-h-16 w-full items-center gap-4 rounded-2xl border border-border bg-card px-5 text-left shadow-card transition active:scale-[0.99]"
     >
-      <span className="text-3xl">{emoji}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-display text-lg font-bold">{title}</span>
-        <span className="block text-sm text-muted-foreground">{text}</span>
-      </span>
+      <span className="min-w-0 flex-1 font-display text-lg font-bold">{title}</span>
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
     </button>
   );
