@@ -46,6 +46,7 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
   const [lieu, setLieu] = useState<"Domicile" | "Extérieur">(match?.lieu === "Domicile" ? "Domicile" : "Extérieur");
   const [salle, setSalle] = useState(match?.salle ?? "");
   const [rdv, setRdv] = useState(match?.rdv ?? "");
+  const [distance, setDistance] = useState(match?.distance ? String(match.distance) : "");
   const [missions, setMissions] = useState<Draft[]>(() =>
     editing
       ? missionsOf(d, match.id).map((m) => ({
@@ -93,7 +94,7 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
         lieu,
         salle: (salle || (lieu === "Extérieur" ? adversaire : "")).trim() || undefined,
         rdv: rdv.trim() || undefined,
-        distance: match?.distance ?? undefined,
+        distance: distance ? Math.min(2000, Math.max(0, Math.round(Number(distance)) || 0)) : undefined,
         infos: match?.infos || undefined,
       };
       const ms = missions.map(({ inscrits: _i, ...m }) => ({ ...m, libelle: m.libelle.trim() || LABELS[m.type] }));
@@ -196,6 +197,19 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
           <label className="block">
             <span className="text-sm font-semibold">Rendez-vous <span className="font-normal text-muted-foreground">(facultatif)</span></span>
             <input value={rdv} onChange={(e) => setRdv(e.target.value)} maxLength={80} placeholder="ex. 12h00 parking de la salle" className={`mt-1 ${input}`} />
+          </label>
+          <label className="block">
+            <span className="text-sm font-semibold">Distance aller-retour (km) <span className="font-normal text-muted-foreground">(facultatif)</span></span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={2000}
+              value={distance}
+              onChange={(e) => setDistance(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder={lieu === "Extérieur" ? "ex. 240" : "ex. 0"}
+              className={`mt-1 ${input}`}
+            />
           </label>
 
           <div>
