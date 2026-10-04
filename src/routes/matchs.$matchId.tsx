@@ -187,7 +187,10 @@ function SignSheet({ d, mission, onClose }: { d: TeamData; mission: Mission; onC
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const submit = async () => {
-    if (isTransport && !who.trim()) return toast.error("Indiquez qui conduit.");
+    if (isTransport && !who.trim()) {
+      toast.error("Indiquez qui conduit.");
+      return;
+    }
     setBusy(true);
     try {
       await sign({
