@@ -40,6 +40,7 @@ export const getTeamData = createServerFn({ method: "POST" })
       team: {
         id: team.id,
         nom: f["Nom"] ?? "",
+        nomAffiche: f["Nom affiché"] ?? "",
         categorie: f["Catégorie"] ?? "",
         saison: f["Saison"] ?? "",
         coach: f["Coach"] ?? "",
@@ -305,4 +306,29 @@ export const deleteMatch = createServerFn({ method: "POST" })
     if (missionIds.length) await deleteRecords(T.missions, missionIds);
     await deleteRecords(T.matchs, [data.matchId]);
     return { ok: true };
+  });
+
+// Paramètres de l'équipe gérés par le coach : nom affiché et code d'accès des joueuses.
+export const updateTeamSettings = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z
+      .object({
+        code: codeSchema,
+        coachCode: codeSchema,
+        nomAffiche: z.string().trim().max(40),
+        accessCode: z
+          .string()
+          .trim()
+          .toUpperCase()
+          .regex(/^[A-Z0-9-]{3,20}$/, "Le code doit faire 3 à 20 caractères (lettres, chiffres ou tiret)."),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { findTeamByCode, updateRecord, T } = await import("./airtable.server");
+    const team = await requireCoach(data.code, data.coachCode);
+    const other = await findTeamByCode(data.accessCode);
+    if (other && other.id !== team.id) throw new Error("Ce code est déjà utilisé par une autre équipe.");
+    await updateRecord(T.equipes, team.id, { "Nom affiché": data.nomAffiche || null, "Code d'accès": data.accessCode });
+    return { code: data.accessCode };
   });

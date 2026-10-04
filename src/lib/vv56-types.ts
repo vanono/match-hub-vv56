@@ -26,6 +26,7 @@ export type TeamData = {
   team: {
     id: string;
     nom: string;
+    nomAffiche: string;
     categorie: string;
     saison: string;
     coach: string;

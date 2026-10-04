@@ -23,6 +23,7 @@ export function AppShell({
   if (!s.ready) body = <Loading />;
   else if (!s.code) body = <TeamCodeForm />;
   else if (q.isLoading) body = <Loading />;
+  else if (q.error && (q.error as Error).message.includes("Code d'équipe inconnu")) body = <CodeChanged />;
   else if (q.error)
     body = <ErrorBox message={(q.error as Error).message} onRetry={() => q.refetch()} />;
   else if (s.role === "famille" && q.data && !q.data.personnes.some((p) => p.id === s.personneId))
@@ -41,7 +42,9 @@ export function AppShell({
           <Link to="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap leading-tight">
             <img src="/logo-vv56.png" alt="" className="h-10 w-10 rounded-full bg-white p-0.5" />
             <span>
-              <span className="block font-display text-base font-bold">Vannes Volley 56</span>
+              <span className="block font-display text-base font-bold">
+                {(loggedIn && q.data?.team.nomAffiche) || "Vannes Volley 56"}
+              </span>
               {coach && <span className="block text-xs text-primary-foreground/75">Espace coach</span>}
             </span>
           </Link>
@@ -200,15 +203,26 @@ function RoleChooser() {
           </button>
         ))}
       </div>
-      <div className="mt-8 flex items-center justify-between text-sm text-muted-foreground">
-        <button onClick={s.logout} className="inline-flex items-center gap-1 underline">
-          <LogOut className="h-4 w-4" /> Changer de code d'équipe
-        </button>
-        <button onClick={() => setCoach(true)} className="font-semibold text-primary underline">
+      <div className="mt-8 text-center">
+        <button onClick={() => setCoach(true)} className="text-sm font-semibold text-primary underline">
           Accès coach
         </button>
       </div>
     </div>
+  );
+}
+
+// Le coach a changé le code d'accès : la session enregistrée n'est plus valable.
+function CodeChanged() {
+  const s = useSession();
+  return (
+    <Card className="mt-4 text-center">
+      <p className="font-semibold">Le code d'accès de l'équipe a changé.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Demandez le nouveau code au coach pour continuer.</p>
+      <Btn className="mt-4 w-full" onClick={s.logout}>
+        Saisir le nouveau code
+      </Btn>
+    </Card>
   );
 }
 

@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Share2, CheckCircle2, CalendarPlus, PartyPopper, ClipboardCheck } from "lucide-react";
+import { Share2, CheckCircle2, CalendarPlus, PartyPopper, ClipboardCheck, Settings } from "lucide-react";
 import { MissionIcon } from "@/components/vv56/MissionIcon";
 import { MatchSheet } from "@/components/vv56/MatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
 import { Btn, Card, Empty, Pill } from "@/components/vv56/ui";
 import { useRefreshTeam, useSession, useTeamData } from "@/lib/session";
-import { markDone } from "@/lib/vv56.functions";
+import { markDone, updateTeamSettings } from "@/lib/vv56.functions";
 import { besoinsMatch, couverture, fmtShort, isPast, sortMatchs, teamCoverage, missionLabel, shortName, whatsappLink, type TeamData } from "@/lib/vv56-types";
 
 export const Route = createFileRoute("/coach")({
@@ -124,6 +124,8 @@ function CoachDashboard() {
       </section>
 
       <ToValidate d={d} />
+
+      <TeamSettings d={d} />
     </div>
   );
 }
@@ -176,6 +178,66 @@ function ToValidate({ d }: { d: TeamData }) {
           ))
         )}
       </div>
+    </section>
+  );
+}
+
+// Paramètres gérés par le coach : nom de l'équipe affiché dans l'app et code d'accès des joueuses.
+function TeamSettings({ d }: { d: TeamData }) {
+  const s = useSession();
+  const refresh = useRefreshTeam();
+  const save = useServerFn(updateTeamSettings);
+  const [nom, setNom] = useState(d.team.nomAffiche);
+  const [code, setCode] = useState(s.code ?? "");
+  const [busy, setBusy] = useState(false);
+  const newCode = code.trim().toUpperCase();
+  const codeChanged = newCode !== (s.code ?? "");
+  const dirty = codeChanged || nom.trim() !== d.team.nomAffiche;
+  const input = "mt-1 h-12 w-full rounded-xl border border-input bg-background px-3 outline-none focus:border-ring";
+  const submit = async () => {
+    if (!/^[A-Z0-9-]{3,20}$/.test(newCode)) {
+      toast.error("Le code doit faire 3 à 20 caractères (lettres, chiffres ou tiret).");
+      return;
+    }
+    if (codeChanged && !confirm(`Remplacer le code d'accès par ${newCode} ? Les joueuses déjà connectées devront saisir le nouveau code.`)) return;
+    setBusy(true);
+    try {
+      const r = await save({ data: { code: s.code!, coachCode: s.coachCode!, nomAffiche: nom.trim(), accessCode: newCode } });
+      if (r.code !== s.code) s.setCode(r.code);
+      else await refresh();
+      toast.success("Paramètres de l'équipe enregistrés.");
+    } catch (e) {
+      toast.error((e as Error).message || "Enregistrement impossible pour le moment.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section>
+      <h2 className="flex items-center gap-2 text-lg font-bold">
+        <Settings className="h-5 w-5" /> Paramètres de l'équipe
+      </h2>
+      <Card className="mt-3 space-y-4">
+        <label className="block">
+          <span className="text-sm font-semibold">Nom de l'équipe</span>
+          <input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={40} placeholder="ex. Les M18" className={input} />
+          <span className="mt-1 block text-xs text-muted-foreground">Affiché en haut de l'application, à côté du logo.</span>
+        </label>
+        <label className="block">
+          <span className="text-sm font-semibold">Code d'accès des joueuses</span>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            maxLength={20}
+            autoCapitalize="characters"
+            className={`${input} font-semibold uppercase tracking-widest`}
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">À transmettre aux joueuses et aux parents. Le changer déconnecte les appareils déjà connectés.</span>
+        </label>
+        <Btn className="w-full" loading={busy} disabled={!dirty} onClick={submit}>
+          Enregistrer
+        </Btn>
+      </Card>
     </section>
   );
 }
