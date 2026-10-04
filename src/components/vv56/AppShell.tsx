@@ -37,7 +37,7 @@ export function AppShell({
     <div className="min-h-screen bg-background" data-espace={coach ? "coach" : "famille"}>
       <header className="sticky top-0 z-20 bg-hero text-primary-foreground">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="leading-tight">
+          <Link to="/" className="shrink-0 whitespace-nowrap leading-tight">
             <span className="block font-display text-base font-bold">Vannes Volley 56</span>
             <span className="block text-xs text-primary-foreground/75">
               {coach ? "Espace coach" : "Espace famille"}
