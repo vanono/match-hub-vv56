@@ -71,20 +71,20 @@
 
 :root {
   --radius: 1rem;
-  --background: oklch(0.975 0.008 220);
-  --foreground: oklch(0.25 0.07 255);
+  --background: oklch(0.975 0.008 245);
+  --foreground: oklch(0.27 0.07 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.07 255);
+  --card-foreground: oklch(0.27 0.07 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.07 255);
-  --primary: oklch(0.25 0.07 255);
+  --popover-foreground: oklch(0.27 0.07 250);
+  --primary: oklch(0.32 0.08 250);
   --primary-foreground: oklch(0.98 0.005 220);
-  --secondary: oklch(0.94 0.03 200);
-  --secondary-foreground: oklch(0.25 0.07 255);
-  --muted: oklch(0.95 0.01 230);
+  --secondary: oklch(0.94 0.03 245);
+  --secondary-foreground: oklch(0.32 0.08 250);
+  --muted: oklch(0.95 0.01 245);
   --muted-foreground: oklch(0.5 0.03 250);
-  --accent: oklch(0.74 0.13 192);
-  --accent-foreground: oklch(0.2 0.06 255);
+  --accent: oklch(0.621 0.217 9.6);
+  --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.58 0.21 27);
   --destructive-foreground: oklch(0.98 0 0);
   --warning: oklch(0.74 0.17 55);
@@ -93,13 +93,13 @@
   --success: oklch(0.66 0.15 155);
   --success-soft: oklch(0.95 0.05 160);
   --success-foreground: oklch(0.4 0.1 155);
-  --border: oklch(0.9 0.015 230);
-  --input: oklch(0.88 0.02 230);
-  --ring: oklch(0.74 0.13 192);
-  --gradient-hero: linear-gradient(135deg, oklch(0.25 0.07 255) 0%, oklch(0.33 0.09 240) 60%, oklch(0.55 0.12 205) 100%);
-  --shadow-card: 0 1px 2px oklch(0.25 0.07 255 / 6%), 0 6px 20px -8px oklch(0.25 0.07 255 / 18%);
-  --chart-1: oklch(0.74 0.13 192);
-  --chart-2: oklch(0.25 0.07 255);
+  --border: oklch(0.9 0.015 245);
+  --input: oklch(0.88 0.02 245);
+  --ring: oklch(0.621 0.217 9.6);
+  --gradient-hero: linear-gradient(135deg, oklch(0.3 0.08 250) 0%, oklch(0.445 0.093 248.7) 60%, oklch(0.55 0.1 245) 100%);
+  --shadow-card: 0 1px 2px oklch(0.32 0.08 250 / 6%), 0 6px 20px -8px oklch(0.32 0.08 250 / 18%);
+  --chart-1: oklch(0.621 0.217 9.6);
+  --chart-2: oklch(0.445 0.093 248.7);
   --chart-3: oklch(0.74 0.17 55);
   --chart-4: oklch(0.66 0.15 155);
   --chart-5: oklch(0.6 0.1 280);
@@ -110,22 +110,28 @@
   --sidebar-accent: oklch(0.95 0.01 230);
   --sidebar-accent-foreground: oklch(0.25 0.07 255);
   --sidebar-border: oklch(0.9 0.015 230);
-  --sidebar-ring: oklch(0.74 0.13 192);
+  --sidebar-ring: oklch(0.621 0.217 9.6);
 }
 
 /*
- * Espace coach : palette distincte de l'espace famille, appliquée via
- * data-espace="coach" sur la racine de l'AppShell (provisoire, à caler sur le logo du club).
+ * Couleurs du logo Vannes Volley 56 : bleu #245785 = oklch(0.445 0.093 248.7),
+ * rose framboise #EA3369 = oklch(0.621 0.217 9.6).
+ * Espace famille (:root) : bleu dominant, rose en accent.
+ * Espace coach (data-espace="coach" sur la racine de l'AppShell) : dominantes inversées.
  */
 [data-espace="coach"] {
-  --primary: oklch(0.3 0.08 30);
-  --secondary: oklch(0.95 0.04 60);
-  --secondary-foreground: oklch(0.3 0.08 30);
-  --accent: oklch(0.75 0.16 60);
-  --accent-foreground: oklch(0.25 0.07 40);
-  --ring: oklch(0.75 0.16 60);
-  --background: oklch(0.98 0.01 70);
-  --gradient-hero: linear-gradient(135deg, oklch(0.3 0.08 30) 0%, oklch(0.42 0.13 35) 55%, oklch(0.66 0.16 55) 100%);
+  --background: oklch(0.98 0.008 10);
+  --primary: oklch(0.38 0.13 5);
+  --secondary: oklch(0.95 0.03 10);
+  --secondary-foreground: oklch(0.38 0.13 5);
+  --muted: oklch(0.95 0.01 10);
+  --border: oklch(0.9 0.02 10);
+  --input: oklch(0.88 0.025 10);
+  --accent: oklch(0.445 0.093 248.7);
+  --accent-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.445 0.093 248.7);
+  --gradient-hero: linear-gradient(135deg, oklch(0.36 0.12 5) 0%, oklch(0.5 0.19 8) 55%, oklch(0.621 0.217 9.6) 100%);
+  --shadow-card: 0 1px 2px oklch(0.38 0.13 5 / 6%), 0 6px 20px -8px oklch(0.38 0.13 5 / 18%);
 }
 
 @layer base {

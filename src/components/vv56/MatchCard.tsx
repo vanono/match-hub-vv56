@@ -21,7 +21,7 @@ export function MatchCard({ d, match, muted }: { d: TeamData; match: Match; mute
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-accent-foreground/70">
+          <p className="text-xs font-bold uppercase tracking-wide text-primary/70">
             {fmtShort(match.date)} {match.date && `· ${fmtTime(match.date)}`}
           </p>
           <p className="mt-1 truncate font-display text-lg font-bold">

@@ -57,7 +57,7 @@ function MatchPage() {
           <ArrowLeft className="h-4 w-4" /> Matchs
         </Link>
         {s.role === "coach" && (
-          <button onClick={() => setEditing(true)} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-accent-foreground">
+          <button onClick={() => setEditing(true)} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-primary">
             <Pencil className="h-4 w-4" /> Modifier le match
           </button>
         )}
@@ -102,7 +102,7 @@ function MatchPage() {
 function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex gap-3">
-      <span className="mt-0.5 text-accent-foreground/60">{icon}</span>
+      <span className="mt-0.5 text-primary/60">{icon}</span>
       <div>
         <p className="text-xs font-semibold text-muted-foreground">{label}</p>
         <p className="font-medium whitespace-pre-line">{value}</p>
