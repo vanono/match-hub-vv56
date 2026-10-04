@@ -21,10 +21,10 @@ export function MatchCard({ d, match, muted }: { d: TeamData; match: Match; mute
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-primary/70">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {fmtShort(match.date)} {match.date && `· ${fmtTime(match.date)}`}
           </p>
-          <p className="mt-1 truncate font-display text-lg font-bold">
+          <p className="mt-1 truncate font-display text-lg font-semibold">
             {dom ? "VV56 vs " : ""}
             {match.adversaire}
             {dom ? "" : " vs VV56"}

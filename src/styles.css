@@ -71,7 +71,7 @@
 
 :root {
   --radius: 1rem;
-  --background: oklch(0.975 0.008 245);
+  --background: oklch(0.982 0.005 245);
   --foreground: oklch(0.27 0.07 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.27 0.07 250);
@@ -83,7 +83,7 @@
   --secondary-foreground: oklch(0.32 0.08 250);
   --muted: oklch(0.95 0.01 245);
   --muted-foreground: oklch(0.5 0.03 250);
-  --accent: oklch(0.621 0.217 9.6);
+  --accent: oklch(0.58 0.21 9);
   --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.58 0.21 27);
   --destructive-foreground: oklch(0.98 0 0);
@@ -93,12 +93,12 @@
   --success: oklch(0.66 0.15 155);
   --success-soft: oklch(0.95 0.05 160);
   --success-foreground: oklch(0.4 0.1 155);
-  --border: oklch(0.9 0.015 245);
+  --border: oklch(0.92 0.012 245);
   --input: oklch(0.88 0.02 245);
-  --ring: oklch(0.621 0.217 9.6);
-  --gradient-hero: linear-gradient(135deg, oklch(0.3 0.08 250) 0%, oklch(0.445 0.093 248.7) 60%, oklch(0.55 0.1 245) 100%);
-  --shadow-card: 0 1px 2px oklch(0.32 0.08 250 / 6%), 0 6px 20px -8px oklch(0.32 0.08 250 / 18%);
-  --chart-1: oklch(0.621 0.217 9.6);
+  --ring: oklch(0.58 0.21 9);
+  --gradient-hero: linear-gradient(135deg, oklch(0.32 0.08 250) 0%, oklch(0.4 0.09 249) 100%);
+  --shadow-card: 0 1px 2px oklch(0.32 0.08 250 / 4%), 0 4px 14px -8px oklch(0.32 0.08 250 / 12%);
+  --chart-1: oklch(0.58 0.21 9);
   --chart-2: oklch(0.445 0.093 248.7);
   --chart-3: oklch(0.74 0.17 55);
   --chart-4: oklch(0.66 0.15 155);
@@ -110,12 +110,14 @@
   --sidebar-accent: oklch(0.95 0.01 230);
   --sidebar-accent-foreground: oklch(0.25 0.07 255);
   --sidebar-border: oklch(0.9 0.015 230);
-  --sidebar-ring: oklch(0.621 0.217 9.6);
+  --sidebar-ring: oklch(0.58 0.21 9);
 }
 
 /*
  * Couleurs du logo Vannes Volley 56 : bleu #245785 = oklch(0.445 0.093 248.7),
- * rose framboise #EA3369 = oklch(0.621 0.217 9.6).
+ * rose framboise #EA3369 = oklch(0.621 0.217 9.6), assombri en oklch(0.58 0.21 9) (#D82760)
+ * pour les boutons afin de garder un contraste ≥ 4.5:1 avec le texte blanc.
+ * Sens des couleurs : rose = action, orange = il manque quelqu'un, vert = couvert.
  * Espace famille (:root) : bleu dominant, rose en accent.
  * Espace coach (data-espace="coach" sur la racine de l'AppShell) : dominantes inversées.
  */
@@ -130,8 +132,8 @@
   --accent: oklch(0.445 0.093 248.7);
   --accent-foreground: oklch(0.99 0 0);
   --ring: oklch(0.445 0.093 248.7);
-  --gradient-hero: linear-gradient(135deg, oklch(0.36 0.12 5) 0%, oklch(0.5 0.19 8) 55%, oklch(0.621 0.217 9.6) 100%);
-  --shadow-card: 0 1px 2px oklch(0.38 0.13 5 / 6%), 0 6px 20px -8px oklch(0.38 0.13 5 / 18%);
+  --gradient-hero: linear-gradient(135deg, oklch(0.36 0.12 5) 0%, oklch(0.45 0.16 7) 100%);
+  --shadow-card: 0 1px 2px oklch(0.38 0.13 5 / 4%), 0 4px 14px -8px oklch(0.38 0.13 5 / 12%);
 }
 
 @layer base {

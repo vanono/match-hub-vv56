@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, CalendarDays } from "lucide-react";
 import { AppShell } from "@/components/vv56/AppShell";
 import { MatchCard } from "@/components/vv56/MatchCard";
 import { Empty } from "@/components/vv56/ui";
@@ -33,10 +33,10 @@ function MatchsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Prochains matchs</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Un coup de main, même petit, fait toute la différence 💙</p>
+      <p className="mt-1 text-sm text-muted-foreground">Un coup de main, même petit, fait toute la différence.</p>
       <div className="mt-4 space-y-3">
         {next.length === 0 ? (
-          <Empty emoji="📅" title="Aucun match à venir pour l'instant" text="Le calendrier sera bientôt mis à jour." />
+          <Empty icon={CalendarDays} title="Aucun match à venir pour l'instant" text="Le calendrier sera bientôt mis à jour." />
         ) : (
           next.map((m) => <MatchCard key={m.id} d={data} match={m} />)
         )}

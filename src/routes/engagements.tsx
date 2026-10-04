@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/vv56/AppShell";
 import { Card, Empty, Pill, Progress } from "@/components/vv56/ui";
 import { useSession, useTeamData } from "@/lib/session";
-import { teamCoverage, fmtShort, typeEmoji, type TeamData } from "@/lib/vv56-types";
+import { Apple, Car, Shirt, Sparkles, Sprout, Star, Trophy } from "lucide-react";
+import { MissionIcon } from "@/components/vv56/MissionIcon";
+import { teamCoverage, fmtShort, missionLabel, shortName, type TeamData } from "@/lib/vv56-types";
 
 export const Route = createFileRoute("/engagements")({
   head: () => ({
@@ -35,12 +37,12 @@ function Engagements() {
   ];
   const allGoals = goals.every((g) => g.n >= g.max);
   const badges = [
-    { ok: mine.length >= 1, e: "🌱", l: "Premier coup de main" },
-    { ok: count("Transport") >= 1, e: "🚗", l: "Premier transport" },
-    { ok: count("Maillots") >= 1, e: "👕", l: "Maillots tout propres" },
-    { ok: count("Collation") >= 1, e: "🍎", l: "Chef collation" },
-    { ok: mine.length >= 5, e: "⭐", l: "Pilier de l'équipe" },
-    { ok: allGoals, e: "🏆", l: "Objectif atteint" },
+    { ok: mine.length >= 1, Icon: Sprout, l: "Premier coup de main" },
+    { ok: count("Transport") >= 1, Icon: Car, l: "Premier transport" },
+    { ok: count("Maillots") >= 1, Icon: Shirt, l: "Maillots tout propres" },
+    { ok: count("Collation") >= 1, Icon: Apple, l: "Chef collation" },
+    { ok: mine.length >= 5, Icon: Star, l: "Pilier de l'équipe" },
+    { ok: allGoals, Icon: Trophy, l: "Objectif atteint" },
   ];
   const cov = teamCoverage(d);
   const hist = [...mine]
@@ -51,12 +53,12 @@ function Engagements() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold">Mes engagements</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{me.nom} · saison {d.team.saison}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{shortName(me.nom)} · saison {d.team.saison}</p>
       </div>
 
       <Card className="bg-hero text-primary-foreground">
         <p className="text-sm text-primary-foreground/80">Ensemble, l'équipe a couvert</p>
-        <p className="font-display text-4xl font-extrabold">{cov.pct}%</p>
+        <p className="font-display text-4xl font-bold">{cov.pct}%</p>
         <p className="text-sm text-primary-foreground/80">des missions de la saison ({cov.covered} / {cov.total})</p>
         <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-primary-foreground/20">
           <div className="h-full rounded-full bg-accent" style={{ width: `${cov.pct}%` }} />
@@ -70,8 +72,10 @@ function Engagements() {
           {goals.map((g) => (
             <div key={g.t}>
               <div className="mb-1 flex justify-between text-sm">
-                <span className="font-semibold">{typeEmoji[g.t]} {g.label}</span>
-                <span className="font-bold">
+                <span className="flex items-center gap-2 font-medium">
+                  <MissionIcon type={g.t} className="h-7 w-7" /> {g.label}
+                </span>
+                <span className="font-semibold tabular-nums">
                   {g.n} / {g.max} {g.n >= g.max && g.max > 0 && "✓"}
                 </span>
               </div>
@@ -85,9 +89,9 @@ function Engagements() {
         <h2 className="font-bold">Mes badges</h2>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {badges.map((b) => (
-            <div key={b.l} className={`rounded-xl p-3 text-center ${b.ok ? "bg-secondary" : "bg-muted opacity-50 grayscale"}`}>
-              <div className="text-2xl">{b.e}</div>
-              <p className="mt-1 text-[11px] font-semibold leading-tight">{b.l}</p>
+            <div key={b.l} className={`rounded-xl p-3 text-center ${b.ok ? "bg-secondary text-primary" : "bg-muted text-muted-foreground opacity-60"}`}>
+              <b.Icon className="mx-auto h-6 w-6" strokeWidth={1.75} />
+              <p className="mt-1.5 text-xs font-medium leading-tight">{b.l}</p>
             </div>
           ))}
         </div>
@@ -97,15 +101,18 @@ function Engagements() {
         <h2 className="font-bold">Historique</h2>
         <div className="mt-3 space-y-2">
           {hist.length === 0 ? (
-            <Empty emoji="✨" title="Votre première mission vous attend" text="Jetez un œil aux prochains matchs, il y a sûrement un coup de main facile à donner." />
+            <Empty icon={Sparkles} title="Votre première mission vous attend" text="Jetez un œil aux prochains matchs, il y a sûrement un coup de main facile à donner." />
           ) : (
             hist.map(({ c, m, match }) => (
               <Link key={c.id} to="/matchs/$matchId" params={{ matchId: match?.id ?? "" }} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{typeEmoji[m?.type ?? ""]} {m?.libelle}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <MissionIcon type={m?.type ?? ""} />
+                  <div className="min-w-0">
+                  <p className="truncate font-medium">{missionLabel(m?.libelle ?? "")}</p>
                   <p className="text-xs text-muted-foreground">
                     {fmtShort(match?.date ?? null)}{c.realisePar && ` · ${c.realisePar}`}
                   </p>
+                  </div>
                 </div>
                 <Pill tone={c.statut === "Réalisé" ? "success" : "info"}>{c.statut}</Pill>
               </Link>

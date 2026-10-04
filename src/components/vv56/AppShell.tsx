@@ -3,6 +3,7 @@ import { Link, Navigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, Star, LayoutDashboard, ChevronRight, LogOut, ArrowLeft } from "lucide-react";
 import { useSession, useTeamData, type Role } from "@/lib/session";
+import { shortName } from "@/lib/vv56-types";
 import { verifyCoachCode, verifyTeamCode } from "@/lib/vv56.functions";
 import { Btn, Card, ErrorBox, Loading } from "./ui";
 import { cn } from "@/lib/utils";
@@ -37,9 +38,12 @@ export function AppShell({
     <div className="min-h-screen bg-background" data-espace={coach ? "coach" : "famille"}>
       <header className="sticky top-0 z-20 bg-hero text-primary-foreground">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="shrink-0 whitespace-nowrap leading-tight">
-            <span className="block font-display text-base font-bold">Vannes Volley 56</span>
-            {coach && <span className="block text-xs text-primary-foreground/75">Espace coach</span>}
+          <Link to="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap leading-tight">
+            <img src="/logo-vv56.png" alt="" className="h-10 w-10 rounded-full bg-white p-0.5" />
+            <span>
+              <span className="block font-display text-base font-bold">Vannes Volley 56</span>
+              {coach && <span className="block text-xs text-primary-foreground/75">Espace coach</span>}
+            </span>
           </Link>
           {loggedIn && <WhoAmI />}
         </div>
@@ -59,14 +63,14 @@ function WhoAmI() {
   const s = useSession();
   const q = useTeamData();
   const label =
-    s.role === "coach" ? "Coach" : q.data?.personnes.find((x) => x.id === s.personneId)?.nom;
+    s.role === "coach" ? "Coach" : shortName(q.data?.personnes.find((x) => x.id === s.personneId)?.nom ?? "") || undefined;
   if (!label) return null;
   const logout = () => {
     if (confirm("Se déconnecter ? Vous reviendrez à l'écran d'accueil.")) s.logout();
   };
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <span className="truncate rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-bold">
+      <span className="truncate rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold">
         {label}
       </span>
       <button
@@ -136,7 +140,8 @@ function TeamCodeForm() {
   };
   return (
     <div className="pt-6">
-      <h1 className="text-3xl font-bold">Bienvenue ! 🏐</h1>
+      <img src="/logo-vv56-transparent.png" alt="Logo Vannes Volley 56" className="mx-auto mb-6 h-28 w-28" />
+      <h1 className="text-3xl font-bold">Bienvenue !</h1>
       <p className="mt-2 text-muted-foreground">
         Transport, maillots, collation… chaque coup de main fait vivre l'équipe. Entrez le code de
         votre équipe pour commencer.

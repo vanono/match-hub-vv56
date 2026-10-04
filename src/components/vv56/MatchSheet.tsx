@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Minus, Plus, Trash2, X } from "lucide-react";
+import { Bus, Home, Minus, Plus, Trash2, X } from "lucide-react";
+import { MissionIcon } from "./MissionIcon";
 import { Btn } from "./ui";
 import { useRefreshTeam, useSession } from "@/lib/session";
 import { createMatch, deleteMatch, updateMatch } from "@/lib/vv56.functions";
-import { activeContribs, defaultMissions, missionsOf, typeEmoji, type Match, type MissionDraft, type TeamData } from "@/lib/vv56-types";
+import { activeContribs, defaultMissions, missionsOf, type Match, type MissionDraft, type TeamData } from "@/lib/vv56-types";
 
 const input = "h-12 w-full rounded-xl border-2 border-input bg-background px-3 outline-none focus:border-ring";
 const ALL_TYPES: MissionDraft["type"][] = ["Transport", "Maillots", "Collation", "Buvette", "Installation"];
@@ -157,7 +158,10 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
                 }}
                 className={`min-h-11 rounded-xl border-2 text-sm font-semibold ${lieu === l ? "border-accent bg-secondary" : "border-border"}`}
               >
-                {l === "Domicile" ? "🏠 Domicile" : "🚌 Extérieur"}
+                <span className="inline-flex items-center gap-2">
+                  {l === "Domicile" ? <Home className="h-4 w-4" /> : <Bus className="h-4 w-4" />}
+                  {l}
+                </span>
               </button>
             ))}
           </div>
@@ -218,7 +222,7 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
             <ul className="mt-2 space-y-2">
               {missions.map((m, i) => (
                 <li key={i} className="flex items-center gap-2 rounded-xl border border-border p-2">
-                  <span className="text-lg">{typeEmoji[m.type]}</span>
+                  <MissionIcon type={m.type} />
                   <input
                     value={m.libelle}
                     onChange={(e) => edit(i, { libelle: e.target.value })}
@@ -247,7 +251,7 @@ export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: Tea
             <div className="mt-2 flex flex-wrap gap-1.5">
               {ALL_TYPES.map((t) => (
                 <button key={t} onClick={() => add(t)} className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold">
-                  + {typeEmoji[t]} {LABELS[t]}
+                  + {LABELS[t]}
                 </button>
               ))}
             </div>

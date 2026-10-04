@@ -70,6 +70,12 @@ export const fmtShort = (iso: string | null) =>
 export const fmtTime = (iso: string | null) =>
   iso ? new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: TZ }).format(new Date(iso)).replace(":", "h") : "";
 
+// Affichage : "Famille de Manon L." -> "Manon L." ; "J2 – Transport Quimper" -> "Transport Quimper".
+export const shortName = (nom: string) => nom.replace(/^Famille (de |d['’])/i, "");
+export const missionLabel = (libelle: string) => libelle.replace(/^J\d+\s*[–-]\s*/, "");
+export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Emojis réservés au message WhatsApp ; l'interface utilise MissionIcon.
 export const typeEmoji: Record<string, string> = {
   Transport: "🚗",
   Maillots: "👕",
