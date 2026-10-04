@@ -65,12 +65,35 @@ function CoachDashboard() {
       </div>
 
       <section>
-        <h2 className="text-lg font-bold">Besoins non couverts</h2>
+        <h2 className="text-lg font-bold">Répartition des contributions</h2>
+        <Card className="mt-3 space-y-2.5">
+          {counts.map(({ p, n }) => (
+            <div key={p.id} className="flex items-center gap-3 text-sm">
+              <span className={`w-36 shrink-0 truncate ${n === 0 ? "font-semibold text-warning-foreground" : ""}`}>{p.nom}</span>
+              <div className="h-5 flex-1 overflow-hidden rounded-md bg-muted">
+                <div className="h-full rounded-md bg-accent" style={{ width: `${(n / max) * 100}%` }} />
+              </div>
+              <span className="w-5 text-right font-bold">{n}</span>
+            </div>
+          ))}
+        </Card>
+        {zero.length > 0 && (
+          <div className="mt-3 rounded-xl bg-warning-soft p-3 text-sm text-warning-foreground">
+            <b>{zero.length} famille{zero.length > 1 ? "s n'ont" : " n'a"} pas encore eu l'occasion de participer.</b> Une petite
+            invitation personnelle (une collation, un lavage de maillots) est souvent la meilleure porte d'entrée 😊
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-bold">Besoins non couverts
+          {needs.length > 3 && <span className="text-sm font-normal text-muted-foreground"> · 3 prochains matchs</span>}
+        </h2>
         <div className="mt-3 space-y-3">
           {needs.length === 0 ? (
             <Empty emoji="🎉" title="Tout est couvert pour les prochains matchs" text="Bravo à toute l'équipe !" />
           ) : (
-            needs.map((m) => (
+            needs.slice(0, 3).map((m) => (
               <Card key={m.id}>
                 <div className="flex items-start justify-between gap-2">
                   <Link to="/matchs/$matchId" params={{ matchId: m.id }}>
@@ -96,26 +119,10 @@ function CoachDashboard() {
             ))
           )}
         </div>
-      </section>
-
-      <section>
-        <h2 className="text-lg font-bold">Répartition des contributions</h2>
-        <Card className="mt-3 space-y-2.5">
-          {counts.map(({ p, n }) => (
-            <div key={p.id} className="flex items-center gap-3 text-sm">
-              <span className={`w-36 shrink-0 truncate ${n === 0 ? "font-semibold text-warning-foreground" : ""}`}>{p.nom}</span>
-              <div className="h-5 flex-1 overflow-hidden rounded-md bg-muted">
-                <div className="h-full rounded-md bg-accent" style={{ width: `${(n / max) * 100}%` }} />
-              </div>
-              <span className="w-5 text-right font-bold">{n}</span>
-            </div>
-          ))}
-        </Card>
-        {zero.length > 0 && (
-          <div className="mt-3 rounded-xl bg-warning-soft p-3 text-sm text-warning-foreground">
-            <b>{zero.length} famille{zero.length > 1 ? "s n'ont" : " n'a"} pas encore eu l'occasion de participer.</b> Une petite
-            invitation personnelle (une collation, un lavage de maillots) est souvent la meilleure porte d'entrée 😊
-          </div>
+        {needs.length > 3 && (
+          <Link to="/matchs" className="mt-3 block text-center text-sm font-semibold text-primary underline">
+            Voir tous les matchs ({needs.length - 3} autre{needs.length - 3 > 1 ? "s" : ""} avec des besoins)
+          </Link>
         )}
       </section>
 
