@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Share2, CheckCircle2, LogOut, CalendarPlus } from "lucide-react";
-import { NewMatchSheet } from "@/components/vv56/NewMatchSheet";
+import { MatchSheet } from "@/components/vv56/MatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
 import { Btn, Card, Empty, Pill } from "@/components/vv56/ui";
 import { useRefreshTeam, useSession, useTeamData } from "@/lib/session";
@@ -98,7 +98,7 @@ function CoachDashboard() {
       <Btn variant="accent" className="w-full" onClick={() => setCreating(true)}>
         <CalendarPlus className="h-5 w-5" /> Créer un match
       </Btn>
-      {creating && <NewMatchSheet onClose={() => setCreating(false)} />}
+      {creating && <MatchSheet onClose={() => setCreating(false)} />}
 
       <div className="grid grid-cols-2 gap-3">
         <Card>
