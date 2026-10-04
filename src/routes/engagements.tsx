@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/vv56/AppShell";
 import { Card, Empty, Pill, Progress } from "@/components/vv56/ui";
 import { useSession, useTeamData } from "@/lib/session";
-import { couverture, fmtShort, typeEmoji, type TeamData } from "@/lib/vv56-types";
+import { teamCoverage, fmtShort, typeEmoji, type TeamData } from "@/lib/vv56-types";
 
 export const Route = createFileRoute("/engagements")({
   head: () => ({
@@ -19,12 +19,6 @@ export const Route = createFileRoute("/engagements")({
     </AppShell>
   ),
 });
-
-export function teamCoverage(d: TeamData) {
-  const total = d.missions.length;
-  const covered = d.missions.filter((m) => couverture(d, m).etat === "Couverte").length;
-  return { total, covered, pct: total ? Math.round((covered / total) * 100) : 0 };
-}
 
 function Engagements() {
   const { data: d } = useTeamData();

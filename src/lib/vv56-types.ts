@@ -96,3 +96,10 @@ export function whatsappLink(d: TeamData, match: Match, origin: string) {
   lines.push(`${origin}/matchs/${match.id}`);
   return `https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`;
 }
+
+export function teamCoverage(d: TeamData) {
+  const total = d.missions.length;
+  const covered = d.missions.filter((m) => couverture(d, m).etat === "Couverte").length;
+  return { total, covered, pct: total ? Math.round((covered / total) * 100) : 0 };
+}
+

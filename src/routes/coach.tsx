@@ -7,8 +7,7 @@ import { AppShell } from "@/components/vv56/AppShell";
 import { Btn, Card, Empty, Pill } from "@/components/vv56/ui";
 import { useRefreshTeam, useSession, useTeamData } from "@/lib/session";
 import { markDone, verifyCoachCode } from "@/lib/vv56.functions";
-import { besoinsMatch, couverture, fmtShort, isPast, sortMatchs, typeEmoji, whatsappLink, type TeamData } from "@/lib/vv56-types";
-import { teamCoverage } from "./engagements";
+import { besoinsMatch, couverture, fmtShort, isPast, sortMatchs, teamCoverage, typeEmoji, whatsappLink, type TeamData } from "@/lib/vv56-types";
 
 export const Route = createFileRoute("/coach")({
   head: () => ({
