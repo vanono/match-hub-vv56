@@ -67,6 +67,14 @@ export async function updateRecord(table: string, id: string, fields: Record<str
   return call(`${table}/${id}`, { method: "PATCH", body: JSON.stringify({ fields, typecast: true }) });
 }
 
+export async function deleteRecords(table: string, ids: string[]) {
+  for (let i = 0; i < ids.length; i += 10) {
+    const q = new URLSearchParams();
+    ids.slice(i, i + 10).forEach((id) => q.append("records[]", id));
+    await call(`${table}?${q}`, { method: "DELETE" });
+  }
+}
+
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
 export async function findTeamByCode(code: string): Promise<AirRecord | null> {

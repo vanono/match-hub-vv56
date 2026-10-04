@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Clock, MapPin, Route as RouteIcon, Info, Share2, X } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Route as RouteIcon, Info, Share2, X, Pencil } from "lucide-react";
+import { MatchSheet } from "@/components/vv56/MatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
 import { CoverageBadge } from "@/components/vv56/MatchCard";
 import { Btn, Card, Empty, Pill, Progress } from "@/components/vv56/ui";
@@ -39,7 +40,9 @@ export const Route = createFileRoute("/matchs/$matchId")({
 function MatchPage() {
   const { matchId } = Route.useParams();
   const { data } = useTeamData();
+  const s = useSession();
   const [signing, setSigning] = useState<Mission | null>(null);
+  const [editing, setEditing] = useState(false);
   if (!data) return null;
   const match = data.matchs.find((m) => m.id === matchId);
   if (!match) return <Empty emoji="🤔" title="Ce match est introuvable" text="Il a peut-être été retiré du calendrier." />;
@@ -49,9 +52,16 @@ function MatchPage() {
 
   return (
     <div>
-      <Link to="/matchs" className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> Matchs
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/matchs" className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-muted-foreground">
+          <ArrowLeft className="h-4 w-4" /> Matchs
+        </Link>
+        {s.coachCode && (
+          <button onClick={() => setEditing(true)} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-accent-foreground">
+            <Pencil className="h-4 w-4" /> Modifier le match
+          </button>
+        )}
+      </div>
       <div className="mt-2 rounded-2xl bg-hero p-5 text-primary-foreground shadow-card">
         <p className="text-sm capitalize text-primary-foreground/80">{fmtDate(match.date)}</p>
         <h1 className="mt-1 text-2xl font-bold">
@@ -83,6 +93,7 @@ function MatchPage() {
           missions.map((m) => <MissionCard key={m.id} d={data} m={m} onSign={() => setSigning(m)} />)
         )}
       </div>
+      {editing && <MatchSheet d={data} match={match} onClose={() => setEditing(false)} />}
       {signing && <SignSheet d={data} mission={signing} onClose={() => setSigning(null)} />}
     </div>
   );

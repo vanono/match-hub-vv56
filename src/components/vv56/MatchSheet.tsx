@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 import { Btn } from "./ui";
 import { useRefreshTeam, useSession } from "@/lib/session";
-import { createMatch } from "@/lib/vv56.functions";
-import { defaultMissions, typeEmoji, type MissionDraft } from "@/lib/vv56-types";
+import { createMatch, deleteMatch, updateMatch } from "@/lib/vv56.functions";
+import { activeContribs, defaultMissions, missionsOf, typeEmoji, type Match, type MissionDraft, type TeamData } from "@/lib/vv56-types";
 
 const input = "h-12 w-full rounded-xl border-2 border-input bg-background px-3 outline-none focus:border-ring";
 const ALL_TYPES: MissionDraft["type"][] = ["Transport", "Maillots", "Collation", "Buvette", "Installation"];
@@ -18,24 +18,53 @@ const LABELS: Record<MissionDraft["type"], string> = {
   Installation: "Installation salle",
 };
 
-export function NewMatchSheet({ onClose }: { onClose: () => void }) {
+type Draft = MissionDraft & { id?: string; inscrits?: number };
+
+// "2026-10-18T13:00:00Z" -> { date: "2026-10-18", heure: "15:00" } en heure de Paris.
+function parisParts(iso: string | null) {
+  if (!iso) return { date: "", heure: "15:00" };
+  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Paris", ...o }).format(new Date(iso));
+  const t = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(iso));
+  const get = (k: string) => t.find((p) => p.type === k)?.value ?? "00";
+  return { date: f({ year: "numeric", month: "2-digit", day: "2-digit" }), heure: `${get("hour")}:${get("minute")}` };
+}
+const stripJ = (s: string) => s.replace(/^J\d+\s*–\s*/, "");
+
+// Création (sans `match`) ou modification (avec `match`) d'un match et de ses missions.
+export function MatchSheet({ onClose, d, match }: { onClose: () => void; d?: TeamData; match?: Match }) {
+  const editing = !!match && !!d;
+  const init = parisParts(match?.date ?? null);
   const s = useSession();
   const refresh = useRefreshTeam();
   const navigate = useNavigate();
   const create = useServerFn(createMatch);
-  const [adversaire, setAdversaire] = useState("");
-  const [date, setDate] = useState("");
-  const [heure, setHeure] = useState("15:00");
-  const [lieu, setLieu] = useState<"Domicile" | "Extérieur">("Extérieur");
-  const [salle, setSalle] = useState("");
-  const [rdv, setRdv] = useState("");
-  const [missions, setMissions] = useState<MissionDraft[]>(defaultMissions("Extérieur", ""));
-  const [touched, setTouched] = useState(false);
+  const update = useServerFn(updateMatch);
+  const del = useServerFn(deleteMatch);
+  const [adversaire, setAdversaire] = useState(match?.adversaire ?? "");
+  const [date, setDate] = useState(init.date);
+  const [heure, setHeure] = useState(init.heure);
+  const [lieu, setLieu] = useState<"Domicile" | "Extérieur">(match?.lieu === "Domicile" ? "Domicile" : "Extérieur");
+  const [salle, setSalle] = useState(match?.salle ?? "");
+  const [rdv, setRdv] = useState(match?.rdv ?? "");
+  const [missions, setMissions] = useState<Draft[]>(() =>
+    editing
+      ? missionsOf(d, match.id).map((m) => ({
+          id: m.id,
+          type: m.type as MissionDraft["type"],
+          libelle: stripJ(m.libelle),
+          places: m.places,
+          detail: m.detail || undefined,
+          inscrits: activeContribs(d, m.id).length,
+        }))
+      : defaultMissions("Extérieur", ""),
+  );
+  // En modification, on ne régénère jamais les missions automatiquement.
+  const [touched, setTouched] = useState(editing);
   const [busy, setBusy] = useState(false);
 
   // Tant que le coach n'a pas modifié les missions, on les recalcule selon le lieu / l'adversaire.
   const reset = (l: typeof lieu, a: string) => !touched && setMissions(defaultMissions(l, a));
-  const edit = (i: number, patch: Partial<MissionDraft>) => {
+  const edit = (i: number, patch: Partial<Draft>) => {
     setTouched(true);
     setMissions(missions.map((m, j) => (j === i ? { ...m, ...patch } : m)));
   };
@@ -55,26 +84,50 @@ export function NewMatchSheet({ onClose }: { onClose: () => void }) {
     }
     setBusy(true);
     try {
-      const r = await create({
-        data: {
-          code: s.code!,
-          coachCode: s.coachCode!,
-          adversaire: adversaire.trim(),
-          date,
-          heure,
-          lieu,
-          salle: (salle || (lieu === "Extérieur" ? adversaire : "")).trim() || undefined,
-          rdv: rdv.trim() || undefined,
-          missions: missions.map((m) => ({ ...m, libelle: m.libelle.trim() || LABELS[m.type] })),
-        },
-      });
-      await refresh();
-      toast.success("Match créé ! Partagez-le sur WhatsApp pour lancer les inscriptions.");
-      onClose();
-      navigate({ to: "/matchs/$matchId", params: { matchId: r.id } });
+      const payload = {
+        code: s.code!,
+        coachCode: s.coachCode!,
+        adversaire: adversaire.trim(),
+        date,
+        heure,
+        lieu,
+        salle: (salle || (lieu === "Extérieur" ? adversaire : "")).trim() || undefined,
+        rdv: rdv.trim() || undefined,
+        distance: match?.distance ?? undefined,
+        infos: match?.infos || undefined,
+      };
+      const ms = missions.map(({ inscrits: _i, ...m }) => ({ ...m, libelle: m.libelle.trim() || LABELS[m.type] }));
+      if (editing) {
+        await update({ data: { ...payload, matchId: match.id, missions: ms } });
+        await refresh();
+        toast.success("Match mis à jour.");
+        onClose();
+      } else {
+        const r = await create({ data: { ...payload, missions: ms } });
+        await refresh();
+        toast.success("Match créé ! Partagez-le sur WhatsApp pour lancer les inscriptions.");
+        onClose();
+        navigate({ to: "/matchs/$matchId", params: { matchId: r.id } });
+      }
     } catch (e) {
-      toast.error((e as Error).message || "Création impossible pour le moment.");
+      toast.error((e as Error).message || "Enregistrement impossible pour le moment.");
       if ((e as Error).message?.includes("coach")) s.setCoachCode(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDelete = async () => {
+    if (!match || !confirm("Supprimer ce match et ses missions ? Cette action est définitive.")) return;
+    setBusy(true);
+    try {
+      await del({ data: { code: s.code!, coachCode: s.coachCode!, matchId: match.id } });
+      await refresh();
+      toast.success("Match supprimé.");
+      onClose();
+      navigate({ to: "/matchs" });
+    } catch (e) {
+      toast.error((e as Error).message || "Suppression impossible pour le moment.");
     } finally {
       setBusy(false);
     }
@@ -87,7 +140,7 @@ export function NewMatchSheet({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
-          <h2 className="text-xl font-bold">Nouveau match</h2>
+          <h2 className="text-xl font-bold">{editing ? "Modifier le match" : "Nouveau match"}</h2>
           <button onClick={onClose} className="-m-2 p-2 text-muted-foreground" aria-label="Fermer">
             <X className="h-5 w-5" />
           </button>
@@ -165,7 +218,13 @@ export function NewMatchSheet({ onClose }: { onClose: () => void }) {
                   <button onClick={() => edit(i, { places: Math.min(10, m.places + 1) })} className="p-1 text-muted-foreground" aria-label="Plus">
                     <Plus className="h-4 w-4" />
                   </button>
-                  <button onClick={() => remove(i)} className="p-1 text-muted-foreground" aria-label="Retirer">
+                  <button
+                    onClick={() => remove(i)}
+                    disabled={!!m.inscrits}
+                    title={m.inscrits ? "Des personnes sont inscrites sur cette mission" : "Retirer"}
+                    className="p-1 text-muted-foreground disabled:opacity-30"
+                    aria-label="Retirer"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </li>
@@ -181,8 +240,13 @@ export function NewMatchSheet({ onClose }: { onClose: () => void }) {
           </div>
 
           <Btn variant="accent" className="w-full" loading={busy} onClick={submit}>
-            Créer le match
+            {editing ? "Enregistrer" : "Créer le match"}
           </Btn>
+          {editing && (
+            <button onClick={onDelete} disabled={busy} className="block w-full py-2 text-center text-sm text-destructive underline">
+              Supprimer ce match
+            </button>
+          )}
         </div>
       </div>
     </div>

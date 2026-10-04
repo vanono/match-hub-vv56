@@ -202,52 +202,107 @@ const missionInput = z.object({
   detail: z.string().trim().max(200).optional(),
 });
 
+const matchInput = {
+  code: codeSchema,
+  coachCode: codeSchema,
+  adversaire: z.string().trim().min(1).max(60),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  heure: z.string().regex(/^\d{2}:\d{2}$/),
+  lieu: z.enum(["Domicile", "Extérieur"]),
+  salle: z.string().trim().max(80).optional(),
+  rdv: z.string().trim().max(80).optional(),
+  distance: z.number().int().min(0).max(2000).optional(),
+  infos: z.string().trim().max(300).optional(),
+};
+type MatchInput = { adversaire: string; date: string; heure: string; lieu: "Domicile" | "Extérieur"; salle?: string | undefined; rdv?: string | undefined; distance?: number | undefined; infos?: string | undefined };
+
+// Champs Airtable du match. Les champs facultatifs vides sont remis à zéro (utile en modification).
+function matchFields(j: string, d: MatchInput) {
+  const dom = d.lieu === "Domicile";
+  return {
+    "Intitulé": `${j} – ${dom ? `VV56 vs ${d.adversaire}` : `${d.adversaire} vs VV56`}`,
+    Date: parisToIso(d.date, d.heure),
+    Adversaire: d.adversaire,
+    Lieu: d.lieu,
+    "Salle / Ville": d.salle || null,
+    "Heure de RDV": d.rdv || null,
+    "Distance AR (km)": d.distance ?? null,
+    Infos: d.infos || null,
+  };
+}
+const missionFields = (j: string, m: z.infer<typeof missionInput>) => ({
+  "Libellé": `${j} – ${m.libelle}`,
+  Type: m.type,
+  "Places nécessaires": m.places,
+  "Détail": m.detail || null,
+});
+
 export const createMatch = createServerFn({ method: "POST" })
-  .inputValidator((d) =>
-    z
-      .object({
-        code: codeSchema,
-        coachCode: codeSchema,
-        adversaire: z.string().trim().min(1).max(60),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        heure: z.string().regex(/^\d{2}:\d{2}$/),
-        lieu: z.enum(["Domicile", "Extérieur"]),
-        salle: z.string().trim().max(80).optional(),
-        rdv: z.string().trim().max(80).optional(),
-        distance: z.number().int().min(0).max(2000).optional(),
-        infos: z.string().trim().max(300).optional(),
-        missions: z.array(missionInput).max(8),
-      })
-      .parse(d),
-  )
+  .inputValidator((d) => z.object({ ...matchInput, missions: z.array(missionInput).max(8) }).parse(d))
   .handler(async ({ data }) => {
     const { listAll, createRecord, createRecords, T } = await import("./airtable.server");
     const team = await requireCoach(data.code, data.coachCode);
     const existing = (await listAll(T.matchs)).filter((m) => (m.fields["Equipe"] ?? []).includes(team.id));
     const j = `J${existing.length + 1}`;
-    const dom = data.lieu === "Domicile";
-    const fields: Record<string, any> = {
-      "Intitulé": `${j} – ${dom ? `VV56 vs ${data.adversaire}` : `${data.adversaire} vs VV56`}`,
-      Date: parisToIso(data.date, data.heure),
-      Adversaire: data.adversaire,
-      Lieu: data.lieu,
-      Equipe: [team.id],
-    };
-    if (data.salle) fields["Salle / Ville"] = data.salle;
-    if (data.rdv) fields["Heure de RDV"] = data.rdv;
-    if (data.distance) fields["Distance AR (km)"] = data.distance;
-    if (data.infos) fields["Infos"] = data.infos;
-    const match = await createRecord(T.matchs, fields);
+    const match = await createRecord(T.matchs, { ...matchFields(j, data), Equipe: [team.id] });
     if (data.missions.length)
       await createRecords(
         T.missions,
-        data.missions.map((m) => ({
-          "Libellé": `${j} – ${m.libelle}`,
-          Type: m.type,
-          "Places nécessaires": m.places,
-          ...(m.detail ? { "Détail": m.detail } : {}),
-          Match: [match.id],
-        })),
+        data.missions.map((m) => ({ ...missionFields(j, m), Match: [match.id] })),
       );
     return { id: match.id as string };
+  });
+
+async function requireCoachMatch(code: string, coachCode: string, matchId: string) {
+  const { getRecord, listAll, T } = await import("./airtable.server");
+  const team = await requireCoach(code, coachCode);
+  const match = await getRecord(T.matchs, matchId);
+  if (!(match.fields["Equipe"] ?? []).includes(team.id)) throw new Error("Match introuvable.");
+  const missionIds: string[] = match.fields["Missions"] ?? [];
+  const actives = (await listAll(T.contributions)).filter(
+    (c) => missionIds.includes((c.fields["Mission"] ?? [])[0]) && c.fields["Statut"] !== "Annulé",
+  );
+  const j = /^J\d+/.exec(String(match.fields["Intitulé"] ?? ""))?.[0] ?? "J?";
+  return { match, missionIds, actives, j };
+}
+
+export const updateMatch = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z
+      .object({
+        ...matchInput,
+        matchId: recId,
+        missions: z.array(missionInput.extend({ id: recId.optional() })).max(8),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { updateRecord, createRecords, deleteRecords, T } = await import("./airtable.server");
+    const { missionIds, actives, j } = await requireCoachMatch(data.code, data.coachCode, data.matchId);
+    const kept = new Set(data.missions.flatMap((m) => (m.id ? [m.id] : [])));
+    if ([...kept].some((id) => !missionIds.includes(id))) throw new Error("Mission introuvable.");
+    const removed = missionIds.filter((id) => !kept.has(id));
+    if (actives.some((c) => removed.includes((c.fields["Mission"] ?? [])[0])))
+      throw new Error("Impossible de retirer une mission qui a déjà des inscrits.");
+    await updateRecord(T.matchs, data.matchId, matchFields(j, data));
+    for (const m of data.missions) if (m.id) await updateRecord(T.missions, m.id, missionFields(j, m));
+    const added = data.missions.filter((m) => !m.id);
+    if (added.length)
+      await createRecords(
+        T.missions,
+        added.map((m) => ({ ...missionFields(j, m), Match: [data.matchId] })),
+      );
+    if (removed.length) await deleteRecords(T.missions, removed);
+    return { ok: true };
+  });
+
+export const deleteMatch = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ code: codeSchema, coachCode: codeSchema, matchId: recId }).parse(d))
+  .handler(async ({ data }) => {
+    const { deleteRecords, T } = await import("./airtable.server");
+    const { missionIds, actives } = await requireCoachMatch(data.code, data.coachCode, data.matchId);
+    if (actives.length) throw new Error("Ce match a déjà des inscrits : annulez d'abord leurs inscriptions.");
+    if (missionIds.length) await deleteRecords(T.missions, missionIds);
+    await deleteRecords(T.matchs, [data.matchId]);
+    return { ok: true };
   });

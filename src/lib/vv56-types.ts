@@ -104,7 +104,7 @@ export function teamCoverage(d: TeamData) {
 }
 
 
-export type MissionDraft = { type: "Transport" | "Maillots" | "Collation" | "Buvette" | "Installation"; libelle: string; places: number; detail?: string };
+export type MissionDraft = { type: "Transport" | "Maillots" | "Collation" | "Buvette" | "Installation"; libelle: string; places: number; detail?: string | undefined };
 
 // Missions proposées par défaut à la création d'un match (modifiables avant validation).
 export function defaultMissions(lieu: "Domicile" | "Extérieur", adversaire: string): MissionDraft[] {
