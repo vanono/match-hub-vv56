@@ -204,8 +204,12 @@ function RoleChooser() {
         ))}
       </div>
       <div className="mt-8 text-center">
-        <button onClick={() => setCoach(true)} className="text-sm font-semibold text-primary underline">
-          Accès coach
+        {/* Framboise de l'espace coach (dégradé du bandeau coach), pour signaler l'autre espace. */}
+        <button
+          onClick={() => setCoach(true)}
+          className="min-h-12 px-4 text-lg font-bold text-[oklch(0.45_0.16_7)] underline decoration-2 underline-offset-4"
+        >
+          Accès COACH
         </button>
       </div>
     </div>
