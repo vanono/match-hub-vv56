@@ -53,6 +53,16 @@ export async function createRecord(table: string, fields: Record<string, any>) {
   return call(table, { method: "POST", body: JSON.stringify({ fields, typecast: true }) });
 }
 
+export async function createRecords(table: string, records: Record<string, any>[]): Promise<AirRecord[]> {
+  const out: AirRecord[] = [];
+  for (let i = 0; i < records.length; i += 10) {
+    const chunk = records.slice(i, i + 10).map((fields) => ({ fields }));
+    const d = await call(table, { method: "POST", body: JSON.stringify({ records: chunk, typecast: true }) });
+    out.push(...d.records);
+  }
+  return out;
+}
+
 export async function updateRecord(table: string, id: string, fields: Record<string, any>) {
   return call(`${table}/${id}`, { method: "PATCH", body: JSON.stringify({ fields, typecast: true }) });
 }

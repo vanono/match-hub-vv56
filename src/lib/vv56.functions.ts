@@ -184,3 +184,70 @@ export const markDone = createServerFn({ method: "POST" })
     await updateRecord(T.contributions, data.contributionId, { Statut: "Réalisé" });
     return { ok: true };
   });
+
+// Heure locale de Paris ("2026-10-18", "15:00") -> ISO UTC, indépendamment du fuseau du serveur.
+function parisToIso(date: string, time: string) {
+  const [y = 0, mo = 1, d = 1] = date.split("-").map(Number);
+  const [h = 0, mi = 0] = time.split(":").map(Number);
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  // Ce que l'horloge de Paris affiche à l'instant `guess`, relu comme si c'était de l'UTC.
+  const shown = new Date(new Date(guess).toLocaleString("en-US", { timeZone: "Europe/Paris" }) + " UTC").getTime();
+  return new Date(guess - (shown - guess)).toISOString();
+}
+
+const missionInput = z.object({
+  type: z.enum(["Transport", "Maillots", "Collation", "Buvette", "Installation"]),
+  libelle: z.string().trim().min(1).max(80),
+  places: z.number().int().min(1).max(10),
+  detail: z.string().trim().max(200).optional(),
+});
+
+export const createMatch = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z
+      .object({
+        code: codeSchema,
+        coachCode: codeSchema,
+        adversaire: z.string().trim().min(1).max(60),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        heure: z.string().regex(/^\d{2}:\d{2}$/),
+        lieu: z.enum(["Domicile", "Extérieur"]),
+        salle: z.string().trim().max(80).optional(),
+        rdv: z.string().trim().max(80).optional(),
+        distance: z.number().int().min(0).max(2000).optional(),
+        infos: z.string().trim().max(300).optional(),
+        missions: z.array(missionInput).max(8),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { listAll, createRecord, createRecords, T } = await import("./airtable.server");
+    const team = await requireCoach(data.code, data.coachCode);
+    const existing = (await listAll(T.matchs)).filter((m) => (m.fields["Equipe"] ?? []).includes(team.id));
+    const j = `J${existing.length + 1}`;
+    const dom = data.lieu === "Domicile";
+    const fields: Record<string, any> = {
+      "Intitulé": `${j} – ${dom ? `VV56 vs ${data.adversaire}` : `${data.adversaire} vs VV56`}`,
+      Date: parisToIso(data.date, data.heure),
+      Adversaire: data.adversaire,
+      Lieu: data.lieu,
+      Equipe: [team.id],
+    };
+    if (data.salle) fields["Salle / Ville"] = data.salle;
+    if (data.rdv) fields["Heure de RDV"] = data.rdv;
+    if (data.distance) fields["Distance AR (km)"] = data.distance;
+    if (data.infos) fields["Infos"] = data.infos;
+    const match = await createRecord(T.matchs, fields);
+    if (data.missions.length)
+      await createRecords(
+        T.missions,
+        data.missions.map((m) => ({
+          "Libellé": `${j} – ${m.libelle}`,
+          Type: m.type,
+          "Places nécessaires": m.places,
+          ...(m.detail ? { "Détail": m.detail } : {}),
+          Match: [match.id],
+        })),
+      );
+    return { id: match.id as string };
+  });
