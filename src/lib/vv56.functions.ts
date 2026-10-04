@@ -121,6 +121,15 @@ export const signUp = createServerFn({ method: "POST" })
     const p = await getRecord(T.personnes, data.personneId);
     if (!(p.fields["Equipe"] ?? []).includes(team.id)) throw new Error("Personne inconnue.");
     await assertMissionInTeam(team.id, data.missionId);
+    const { listAll } = await import("./airtable.server");
+    const mission = await getRecord(T.missions, data.missionId);
+    const actives = (await listAll(T.contributions)).filter(
+      (c) => (c.fields["Mission"] ?? [])[0] === data.missionId && c.fields["Statut"] !== "Annulé",
+    );
+    if (actives.some((c) => (c.fields["Personne"] ?? [])[0] === data.personneId))
+      throw new Error("Vous êtes déjà inscrit·e sur cette mission.");
+    if (actives.length >= Math.max(1, Number(mission.fields["Places nécessaires"]) || 1))
+      throw new Error("Cette mission vient d'être couverte. Merci quand même !");
     const fields: Record<string, any> = {
       Mission: [data.missionId],
       Personne: [data.personneId],
