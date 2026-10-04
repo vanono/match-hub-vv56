@@ -92,6 +92,8 @@ export function useTeamData() {
     queryFn: () => fetchData({ data: { code: code! } }),
     enabled: !!code,
     staleTime: 20_000,
+    // Code d'équipe changé par le coach : inutile de réessayer, on affiche directement le message.
+    retry: (n, err) => !(err as Error).message.includes("Code d'équipe inconnu") && n < 3,
   });
 }
 

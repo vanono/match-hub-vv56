@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Clock, MapPin, Route as RouteIcon, Info, Share2, X, Pencil } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Route as RouteIcon, Info, Share2, X, Pencil, Home, Bus, CalendarX, ClipboardCheck, PartyPopper } from "lucide-react";
+import { MissionIcon } from "@/components/vv56/MissionIcon";
 import { MatchSheet } from "@/components/vv56/MatchSheet";
 import { AppShell } from "@/components/vv56/AppShell";
 import { CoverageBadge } from "@/components/vv56/MatchCard";
@@ -11,11 +12,13 @@ import { useRefreshTeam, useSession, useTeamData } from "@/lib/session";
 import { cancelContribution, signUp } from "@/lib/vv56.functions";
 import {
   activeContribs,
+  cap,
   couverture,
   fmtDate,
   fmtTime,
+  missionLabel,
   missionsOf,
-  typeEmoji,
+  shortName,
   whatsappLink,
   type Mission,
   type TeamData,
@@ -45,7 +48,7 @@ function MatchPage() {
   const [editing, setEditing] = useState(false);
   if (!data) return null;
   const match = data.matchs.find((m) => m.id === matchId);
-  if (!match) return <Empty emoji="🤔" title="Ce match est introuvable" text="Il a peut-être été retiré du calendrier." />;
+  if (!match) return <Empty icon={CalendarX} title="Ce match est introuvable" text="Il a peut-être été retiré du calendrier." />;
   const missions = missionsOf(data, match.id);
   const dom = match.lieu === "Domicile";
   const share = () => window.open(whatsappLink(data, match, window.location.origin), "_blank");
@@ -63,51 +66,52 @@ function MatchPage() {
         )}
       </div>
       <div className="mt-2 rounded-2xl bg-hero p-5 text-primary-foreground shadow-card">
-        <p className="text-sm capitalize text-primary-foreground/80">{fmtDate(match.date)}</p>
+        <p className="text-sm text-primary-foreground/80">
+          {cap(fmtDate(match.date))}
+          {match.date && ` · ${fmtTime(match.date)}`}
+        </p>
         <h1 className="mt-1 text-2xl font-bold">
           {dom ? `VV56 vs ${match.adversaire}` : `${match.adversaire} vs VV56`}
         </h1>
         <div className="mt-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-bold">{dom ? "🏠 Domicile" : "🚌 Extérieur"}</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold">
+            {dom ? <Home className="h-3.5 w-3.5" /> : <Bus className="h-3.5 w-3.5" />}
+            {dom ? "Domicile" : "Extérieur"}
+          </span>
           <CoverageBadge d={data} match={match} />
         </div>
+        <ul className="mt-4 space-y-1.5 border-t border-primary-foreground/15 pt-3 text-sm text-primary-foreground/90">
+          {match.rdv && <Row icon={Clock} text={`RDV ${match.rdv}`} />}
+          {match.salle && <Row icon={MapPin} text={match.salle + (match.distance ? ` · ${match.distance} km A/R` : "")} />}
+          {!match.salle && !!match.distance && <Row icon={RouteIcon} text={`${match.distance} km A/R`} />}
+          {match.infos && <Row icon={Info} text={match.infos} />}
+        </ul>
       </div>
 
-      <Card className="mt-4 space-y-3 text-sm">
-        {match.date && <Row icon={<Clock className="h-4 w-4" />} label="Coup d'envoi" value={fmtTime(match.date)} />}
-        {match.rdv && <Row icon={<Clock className="h-4 w-4" />} label="Rendez-vous" value={match.rdv} />}
-        {match.salle && <Row icon={<MapPin className="h-4 w-4" />} label="Lieu" value={match.salle} />}
-        {!!match.distance && <Row icon={<RouteIcon className="h-4 w-4" />} label="Distance A/R" value={`${match.distance} km`} />}
-        {match.infos && <Row icon={<Info className="h-4 w-4" />} label="Infos" value={match.infos} />}
-      </Card>
-
-      <Btn variant="whatsapp" className="mt-4 w-full" onClick={share}>
-        <Share2 className="h-5 w-5" /> Partager sur WhatsApp
-      </Btn>
-
-      <h2 className="mt-8 text-xl font-bold">Missions</h2>
+      <h2 className="mt-6 text-lg font-bold">Missions</h2>
       <div className="mt-3 space-y-3">
         {missions.length === 0 ? (
-          <Empty emoji="🙌" title="Aucune mission pour ce match" text="Rien à organiser, profitez du match !" />
+          <Empty icon={PartyPopper} title="Aucune mission pour ce match" text="Rien à organiser, profitez du match !" />
         ) : (
           missions.map((m) => <MissionCard key={m.id} d={data} m={m} onSign={() => setSigning(m)} />)
         )}
       </div>
+
+      <Btn variant="whatsapp" className="mt-6 w-full" onClick={share}>
+        <Share2 className="h-5 w-5" /> Partager sur WhatsApp
+      </Btn>
       {editing && <MatchSheet d={data} match={match} onClose={() => setEditing(false)} />}
       {signing && <SignSheet d={data} mission={signing} onClose={() => setSigning(null)} />}
     </div>
   );
 }
 
-function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Row({ icon: Icon, text }: { icon: typeof Clock; text: string }) {
   return (
-    <div className="flex gap-3">
-      <span className="mt-0.5 text-primary/60">{icon}</span>
-      <div>
-        <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-        <p className="font-medium whitespace-pre-line">{value}</p>
-      </div>
-    </div>
+    <li className="flex gap-2">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary-foreground/60" />
+      <span className="whitespace-pre-line">{text}</span>
+    </li>
   );
 }
 
@@ -125,7 +129,7 @@ function MissionCard({ d, m, onSign }: { d: TeamData; m: Mission; onSign: () => 
     setBusy(true);
     try {
       await cancel({ data: { code: s.code!, contributionId: mine.id, personneId: s.personneId! } });
-      toast("Inscription annulée. Merci d'avoir prévenu 👍");
+      toast("Inscription annulée. Merci d'avoir prévenu.");
       await refresh();
     } catch (e) {
       toast.error((e as Error).message || "Annulation impossible pour le moment.");
@@ -136,17 +140,18 @@ function MissionCard({ d, m, onSign }: { d: TeamData; m: Mission; onSign: () => 
   return (
     <Card>
       <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="font-display text-base font-bold">
-            {typeEmoji[m.type] ?? "•"} {m.libelle}
-          </p>
-          {m.detail && <p className="mt-0.5 text-sm text-muted-foreground">{m.detail}</p>}
+        <div className="flex min-w-0 items-start gap-3">
+          <MissionIcon type={m.type} />
+          <div className="min-w-0">
+            <p className="font-display text-base font-semibold">{missionLabel(m.libelle)}</p>
+            {m.detail && <p className="mt-0.5 text-sm text-muted-foreground">{m.detail}</p>}
+          </div>
         </div>
         {c.etat === "Couverte" ? <Pill tone="success">Couvert ✓</Pill> : c.etat === "Partielle" ? <Pill tone="warning">Partiel</Pill> : <Pill tone="warning">À pourvoir</Pill>}
       </div>
       <div className="mt-3 flex items-center gap-3">
-        <Progress value={c.inscrits} max={m.places} tone={c.etat === "Couverte" ? "success" : c.inscrits ? "accent" : "warning"} />
-        <span className="shrink-0 text-sm font-bold">
+        <Progress value={c.inscrits} max={m.places} tone={c.etat === "Couverte" ? "success" : "warning"} />
+        <span className="shrink-0 text-sm font-semibold tabular-nums">
           {c.inscrits} / {m.places}
         </span>
       </div>
@@ -155,7 +160,7 @@ function MissionCard({ d, m, onSign }: { d: TeamData; m: Mission; onSign: () => 
           {inscrits.map((x) => (
             <li key={x.id} className="flex items-center justify-between gap-2">
               <span>
-                <span className="font-semibold">{name(x.personneId)}</span>
+                <span className="font-medium">{shortName(name(x.personneId))}</span>
                 {x.realisePar && <span className="text-muted-foreground"> · {x.realisePar}</span>}
                 {x.placesVoiture ? <span className="text-muted-foreground"> · {x.placesVoiture} places</span> : null}
               </span>
@@ -168,7 +173,9 @@ function MissionCard({ d, m, onSign }: { d: TeamData; m: Mission; onSign: () => 
         <div className="mt-4">
         {mine ? (
           <div className="flex items-center justify-between gap-2 rounded-xl bg-success-soft p-3">
-            <span className="text-sm font-semibold text-success-foreground">Vous êtes inscrit·e, merci ! 🙌</span>
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-success-foreground">
+              <ClipboardCheck className="h-4 w-4" /> Vous êtes inscrit·e, merci !
+            </span>
             {mine.statut === "Inscrit" && (
               <button onClick={onCancel} disabled={busy} className="min-h-10 shrink-0 px-2 text-sm text-muted-foreground underline">
                 {busy ? "…" : "Annuler"}
@@ -228,7 +235,9 @@ function SignSheet({ d, mission, onClose }: { d: TeamData; mission: Mission; onC
       <div className="w-full max-w-md rounded-t-3xl bg-card p-5 pb-8 shadow-card sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
         {done ? (
           <div className="py-6 text-center">
-            <div className="text-6xl">🙌</div>
+            <span className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-success-soft text-success-foreground">
+              <ClipboardCheck className="h-8 w-8" />
+            </span>
             <h2 className="mt-3 text-2xl font-bold">Merci !</h2>
             <p className="mt-2 text-muted-foreground">Grâce à vous, l'équipe est un peu plus prête pour ce match. C'est noté !</p>
             <Btn className="mt-6 w-full" onClick={onClose}>
@@ -238,8 +247,8 @@ function SignSheet({ d, mission, onClose }: { d: TeamData; mission: Mission; onC
         ) : (
           <>
             <div className="flex items-start justify-between">
-              <h2 className="text-xl font-bold">
-                {typeEmoji[mission.type]} {mission.libelle}
+              <h2 className="flex items-center gap-3 text-xl font-bold">
+                <MissionIcon type={mission.type} /> {missionLabel(mission.libelle)}
               </h2>
               <button onClick={onClose} className="-m-2 p-2 text-muted-foreground" aria-label="Fermer">
                 <X className="h-5 w-5" />

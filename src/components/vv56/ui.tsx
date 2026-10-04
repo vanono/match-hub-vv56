@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
@@ -10,9 +10,9 @@ type BtnVariant = "primary" | "accent" | "outline" | "ghost" | "whatsapp";
 const variants: Record<BtnVariant, string> = {
   primary: "bg-primary text-primary-foreground hover:bg-primary/90",
   accent: "bg-accent text-accent-foreground hover:bg-accent/90",
-  outline: "border-2 border-border bg-card text-foreground hover:bg-muted",
+  outline: "border border-border bg-card text-foreground hover:bg-muted",
   ghost: "text-muted-foreground hover:bg-muted",
-  whatsapp: "bg-success text-primary-foreground hover:bg-success/90",
+  whatsapp: "border border-success/40 bg-card text-success-foreground hover:bg-success-soft",
 };
 export function Btn({
   variant = "primary",
@@ -44,7 +44,7 @@ export function Pill({ tone, children }: { tone: "warning" | "success" | "info" 
     info: "bg-secondary text-secondary-foreground",
     muted: "bg-muted text-muted-foreground",
   }[tone];
-  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold", t)}>{children}</span>;
+  return <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold", t)}>{children}</span>;
 }
 
 export function Progress({ value, max, tone = "accent" }: { value: number; max: number; tone?: "accent" | "success" | "warning" }) {
@@ -82,11 +82,13 @@ export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () =
   );
 }
 
-export function Empty({ emoji, title, text }: { emoji: string; title: string; text?: string }) {
+export function Empty({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text?: string }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
-      <div className="text-4xl">{emoji}</div>
-      <p className="mt-2 font-semibold">{title}</p>
+    <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+      <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary">
+        <Icon className="h-6 w-6" />
+      </span>
+      <p className="mt-3 font-semibold">{title}</p>
       {text && <p className="mt-1 text-sm text-muted-foreground">{text}</p>}
     </div>
   );
