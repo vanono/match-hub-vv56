@@ -14,7 +14,7 @@ export const Route = createFileRoute("/engagements")({
     ],
   }),
   component: () => (
-    <AppShell>
+    <AppShell area="famille">
       <Engagements />
     </AppShell>
   ),
