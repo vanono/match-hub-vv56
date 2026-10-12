@@ -55,9 +55,20 @@ export function AppShell({
         {body}
         {/* Mention RGPD (données de joueuses mineures) : une seule fois, sur l'écran d'accueil. */}
         {s.ready && !s.code && (
-          <p className="mt-10 text-center text-xs text-muted-foreground">
-            Données utilisées uniquement pour l'organisation de l'équipe – Vannes Volley 56
-          </p>
+          <footer className="mt-10 text-center text-xs text-muted-foreground">
+            <p>Données utilisées uniquement pour l'organisation de l'équipe – Vannes Volley 56</p>
+            <details className="mt-3 text-left">
+              <summary className="cursor-pointer text-center font-semibold text-primary underline underline-offset-4">
+                Mentions légales
+              </summary>
+              <div className="mt-2 space-y-1 rounded-xl border border-border bg-card p-3 leading-relaxed">
+                <p><strong>Éditeur :</strong> Sébastien Noël, bénévole du Vannes Volley 56, projet de formation.</p>
+                <p><strong>Hébergement :</strong> Lovable (application), Airtable (données).</p>
+                <p><strong>Données :</strong> prénom et initiale des joueuses, missions et inscriptions, utilisés uniquement pour organiser l'équipe. Aucune publicité.</p>
+                <p><strong>Contact et suppression :</strong> auprès du coach de l'équipe.</p>
+              </div>
+            </details>
+          </footer>
         )}
       </main>
       {loggedIn && <TabBar role={s.role!} />}
